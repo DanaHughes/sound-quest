@@ -1,0 +1,1542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Sound Quest</title>
+<meta name="description" content="Kid-friendly sound and spelling practice: meet the cards, read, write, spell and hunt for words.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap">
+<style>
+/* Layout: one classroom "desk". Sticky header with views, then a lesson workspace whose
+   five steps follow the lesson plan in order. Cards are drawn like the printed cards:
+   white, thick dark border, rounded corners. Single light "paper" look by design. */
+:root{
+  color-scheme: light;
+  --paper:#f6f8fc;      /* page ground, cool paper */
+  --desk:#ffffff;       /* panels */
+  --ink:#1b2333;        /* text and card borders */
+  --muted:#5a6377;
+  --line:#dbe2ee;
+  --sky:#d3ecfc;  --sky-ink:#1d6aa8;   /* vowel box blue from the cards */
+  --sun:#ffeaa6;  --sun-ink:#7a5200;   /* digraph box yellow */
+  --mint:#dcf3cf; --mint-ink:#2c6e27;  /* long-vowel box green */
+  --red:#df2a2a;                       /* target letters, red like the keyword cards */
+  --k:#f2c230; --g1:#e85d3d;           /* semester colors from the scope & sequence */
+  --good:#2c8a3e; --soft-good:#e3f5e6;
+  --read:"Andika", "Comic Sans MS", "Trebuchet MS", sans-serif;
+  --display:"Fredoka", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --r:16px;
+}
+*{box-sizing:border-box}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--display);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--sky-ink);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{text-wrap:balance;margin:0;font-weight:600}
+.read{font-family:var(--read)}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:2px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;background:none;border:0;padding:0}
+.brand .stack{position:relative;width:34px;height:40px}
+.brand .stack i{position:absolute;inset:0;border:3px solid var(--ink);border-radius:7px;background:#fff}
+.brand .stack i:nth-child(1){transform:rotate(-10deg);background:var(--sun)}
+.brand .stack i:nth-child(2){transform:rotate(6deg);background:var(--sky)}
+.brand .stack i:nth-child(3){display:grid;place-items:center;font-family:var(--read);font-weight:700;font-size:18px}
+.brand b{font-size:20px;font-weight:700;letter-spacing:.2px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.nav button{border:2px solid var(--line);background:var(--desk);border-radius:999px;padding:8px 14px;font-weight:600;font-size:15px}
+.nav button[aria-current="page"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.banner{background:var(--sun);border:2px solid #f0d27a;border-radius:12px;padding:10px 14px;margin-top:14px;font-size:15px}
+
+/* generic */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 18px;border-radius:14px;border:3px solid var(--ink);background:#fff;font-weight:600;font-size:17px;box-shadow:0 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn.primary{background:var(--ink);color:#fff}
+.btn.sky{background:var(--sky)} .btn.sun{background:var(--sun)} .btn.mint{background:var(--mint)}
+.btn.small{min-height:40px;padding:6px 12px;font-size:15px;border-width:2px;box-shadow:0 2px 0 var(--ink)}
+.btn.ghost{border-color:var(--line);box-shadow:none}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.panel{background:var(--desk);border:2px solid var(--line);border-radius:var(--r);padding:18px}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;border:2px solid var(--line);background:#fff}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;margin-top:20px}
+.continue{display:flex;gap:18px;align-items:center}
+.continue .scard{width:130px;flex:none}
+.continue h2{font-size:30px}
+.continue .pat{font-family:var(--read);font-size:44px;font-weight:700;line-height:1.1}
+.steps-key{display:grid;gap:8px;font-size:15px}
+.steps-key div{display:flex;gap:10px;align-items:baseline}
+.steps-key b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:14px;flex:none}
+.seq{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:22px;align-items:start}
+.sem{border:3px solid var(--k);border-radius:var(--r);background:#fff;padding:12px}
+.sem.g1{border-color:var(--g1)}
+.sem h3{font-size:18px;margin-bottom:8px}
+.sem ol{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.les{width:100%;display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:8px;text-align:left;border:0;background:transparent;border-radius:10px;padding:6px 8px}
+.les:hover{background:var(--paper)}
+.les .n{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.les .t{font-family:var(--read);font-size:17px;min-width:0;overflow-wrap:anywhere}
+.les .t small{font-family:var(--display);color:var(--muted);font-size:12px;margin-left:4px}
+.dots{display:flex;gap:3px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--good)}
+.les.current{background:var(--sun)}
+
+/* lesson */
+.lhead{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:18px}
+.lhead .back{border:0;background:none;color:var(--sky-ink);font-weight:600;padding:0}
+.lhead h1{font-family:var(--read);font-size:clamp(34px,6vw,52px);font-weight:700;line-height:1}
+.lhead .snd{font-family:var(--read);font-size:22px;color:var(--muted)}
+.lnav{display:flex;gap:8px;margin-left:auto}
+.tabs{display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:4px}
+.tab{flex:none;display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:#fff;border-radius:14px;padding:8px 14px;font-weight:600}
+.tab b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--line);font-size:13px}
+.tab.done b{background:var(--good);color:#fff}
+.tab[aria-selected="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.tab[aria-selected="true"] b{background:#fff;color:var(--ink)}
+.tab small{font-weight:500;opacity:.75}
+.stage{margin-top:14px;display:grid;gap:16px}
+.guide{border:2px dashed var(--line);border-radius:var(--r);background:#fff}
+.guide summary{cursor:pointer;padding:10px 14px;font-weight:600;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.guide summary::marker{color:var(--muted)}
+.guide .body{padding:0 16px 14px;max-width:70ch;font-size:15px}
+.timer{margin-left:auto;display:flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums}
+.timer span{font-weight:700;min-width:52px;text-align:right}
+.stepfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+/* cards */
+.scard{position:relative;aspect-ratio:400/557;width:100%;max-width:100%;border:4px solid var(--ink);border-radius:18px;background:#fff;overflow:hidden}
+.scard img{display:block;width:100%;height:100%;object-fit:cover}
+.scard.made{display:flex;flex-direction:column;padding:8% 7%;gap:6%}
+.scard.made .pic{flex:1;display:grid;place-items:center;font-size:min(22vw,92px);line-height:1}
+.scard.made .cbox{border:1.5px solid #2f4a7a;border-radius:12px;padding:6% 4%;text-align:center;font-family:var(--read)}
+.scard.made .kw{font-size:14px}
+.scard.made .kw em{color:var(--red);font-style:normal}
+.scard.made .sp{font-size:26px;font-weight:700;line-height:1.15;display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center}
+.tone-sun{background:linear-gradient(#fff6d6,var(--sun))}
+.tone-sky{background:radial-gradient(var(--sky),#eaf6fe)}
+.tone-mint{background:radial-gradient(var(--mint),#f0faea)}
+.madetag{position:absolute;top:6px;right:6px;font-size:10px;font-weight:600;background:#fff;border:1.5px dashed var(--muted);color:var(--muted);border-radius:6px;padding:1px 5px;font-family:var(--display)}
+.cover{position:absolute;left:0;right:0;bottom:0;background:repeating-linear-gradient(135deg,#ffd98a 0 14px,#ffcf6b 14px 28px);border-top:3px dashed var(--ink);display:grid;place-items:center;touch-action:none;cursor:grab;transition:transform .35s ease}
+.cover span{background:#fff;border:2px solid var(--ink);border-radius:999px;padding:6px 12px;font-weight:600;font-size:15px}
+.cover.gone{transform:translateY(105%)}
+
+/* meet */
+.meet{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px;align-items:start}
+.cardtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.cardtabs button{border:2px solid var(--line);background:#fff;border-radius:10px;padding:4px 10px;font-family:var(--read);font-weight:700;font-size:16px}
+.cardtabs button[aria-pressed="true"]{border-color:var(--ink);background:var(--sky)}
+.spells{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.spells span{font-family:var(--read);font-size:22px;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:2px 12px;background:#fff}
+.spells span.focus{border-color:var(--red);color:var(--red)}
+.spells span.added{border-style:dashed}
+.spells sup{font-family:var(--display);font-size:12px;color:var(--muted);margin-right:3px}
+.chant{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.chip{font-family:var(--read);font-weight:700;font-size:clamp(22px,4vw,34px);padding:8px 16px;border-radius:16px;border:3px solid var(--line);background:#fff;transition:transform .15s,background .15s,border-color .15s}
+.chip.snd{color:var(--sky-ink)}
+.chip.on{background:var(--sun);border-color:var(--ink);transform:scale(1.08)}
+.stars{display:flex;gap:6px;font-size:30px;line-height:1}
+.stars i{font-style:normal;color:var(--line);transition:color .2s,transform .2s}
+.stars i.on{color:#f2b705;transform:scale(1.15)}
+.move{display:flex;gap:16px;align-items:center;background:var(--mint);border:2px solid #b8e2a8;border-radius:var(--r);padding:14px}
+.move .ico{font-size:44px;line-height:1;flex:none;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-6deg)}}
+.move p{margin:4px 0 0;font-size:18px;font-family:var(--read)}
+
+/* words */
+.word{font-family:var(--read);font-weight:700;letter-spacing:.5px}
+.word .g.t{color:var(--red)}
+.word .g.silent{opacity:.55}
+.hidecolors .word .g.t{color:inherit}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.wbtn{position:relative;border:3px solid var(--line);border-radius:14px;background:#fff;padding:10px 6px;font-size:26px}
+.wbtn[aria-pressed="true"]{border-color:var(--ink);background:var(--sun)}
+.wbtn .ok{position:absolute;top:2px;right:6px;font-size:14px;color:var(--good);font-family:var(--display)}
+.wstage{display:grid;gap:16px;justify-items:center;text-align:center}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tile{min-width:64px;min-height:78px;padding:6px 14px;border:3px solid var(--ink);border-radius:14px;background:#fff;font-family:var(--read);font-weight:700;font-size:clamp(36px,8vw,58px);line-height:1.15;display:grid;place-items:center;transition:background .15s,transform .15s}
+.tile.t{color:var(--red);background:#fff4f4}
+.hidecolors .tile.t{color:var(--ink);background:#fff}
+.tile.silent{border-style:dashed;opacity:.7}
+.tile.on{background:var(--sun)!important;transform:translateY(-6px)}
+.tile.found{box-shadow:0 0 0 5px var(--red)}
+.tile small{display:block;font-size:12px;font-family:var(--display);font-weight:500;color:var(--muted)}
+.slide{position:relative;width:min(560px,100%);height:64px;border-radius:999px;background:var(--sky);border:3px solid var(--ink);touch-action:none;user-select:none}
+.slide .knob{position:absolute;top:50%;left:0;width:56px;height:56px;margin-top:-28px;border-radius:50%;background:#fff;border:3px solid var(--ink);display:grid;place-items:center;font-size:24px;cursor:grab}
+.slide .lab{position:absolute;inset:0;display:grid;place-items:center;font-weight:600;color:var(--sky-ink);pointer-events:none}
+
+/* write */
+.wtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:8px 12px;font-weight:600;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.swatch{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line)}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+.canvaswrap{position:relative;border:4px solid var(--ink);border-radius:18px;overflow:hidden;background:#fff;touch-action:none}
+.canvaswrap canvas{display:block;width:100%;height:auto;touch-action:none}
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.bigpat{font-family:var(--read);font-weight:700;font-size:64px;line-height:1;text-align:center;padding:10px;border-radius:14px;background:var(--paper)}
+.peek{user-select:none;touch-action:none}
+
+/* spell */
+.dict{display:grid;gap:16px;justify-items:center;text-align:center}
+.sounds{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.scol{display:grid;gap:8px;justify-items:center}
+.schip{position:relative;font-family:var(--read);font-weight:700;font-size:22px;color:var(--sky-ink);border:2px solid var(--line);border-radius:12px;padding:4px 10px;background:#fff;min-width:64px}
+.schip .num{position:absolute;top:-10px;right:-10px;background:var(--red);color:#fff;border-radius:999px;font-size:12px;padding:1px 6px;font-family:var(--display)}
+.schip.on{background:var(--sun);border-color:var(--ink)}
+.box{width:76px;height:86px;border:3px dashed var(--muted);border-radius:14px;display:grid;place-items:center;background:#fff;font-family:var(--read);font-weight:700;font-size:42px}
+.box.filled{border-style:solid;border-color:var(--ink)}
+.box.right{background:var(--soft-good);border-color:var(--good)}
+.box.wrong{background:#ffecec;border-color:var(--red)}
+.box.hot{background:var(--sky)}
+.box small{font-size:11px;font-family:var(--display);color:var(--muted);font-weight:500;align-self:end}
+.bank{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:620px}
+.ptile{min-width:62px;height:66px;padding:0 12px;border:3px solid var(--ink);border-radius:14px;background:var(--sun);font-family:var(--read);font-weight:700;font-size:34px;box-shadow:0 3px 0 var(--ink);touch-action:none;user-select:none}
+.ptile.used{visibility:hidden}
+.dragghost{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-50%) scale(1.1);opacity:.9;margin:0}
+.answer{font-size:44px}
+
+/* hunt */
+.sentences{display:grid;gap:14px}
+.sent{display:flex;flex-wrap:wrap;gap:6px 4px;font-size:clamp(26px,4.6vw,36px)}
+.hw{border:0;background:transparent;border-radius:10px;padding:2px 6px;font-family:var(--read);font-weight:700}
+.hw.hit{background:var(--sun);box-shadow:inset 0 -4px 0 var(--red)}
+.hw.miss{animation:shake .35s}
+.hw .t{color:var(--red)}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.tally{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tally .count{font-size:48px;font-weight:700;font-variant-numeric:tabular-nums;min-width:70px;text-align:center}
+.marks{display:flex;gap:10px;flex-wrap:wrap}
+.marks i{display:inline-block;width:6px;height:34px;background:var(--ink);border-radius:3px}
+.marks span{display:inline-flex;gap:5px;position:relative}
+.marks span.five::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:5px;background:var(--red);transform:rotate(-22deg)}
+input[type=text]{font:inherit;font-family:var(--read);font-size:18px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:48px;width:100%;max-width:340px;background:#fff;color:var(--ink)}
+
+/* wall + review */
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px;margin-top:16px}
+.wcard{position:relative;border:0;background:none;padding:0;text-align:center}
+.wcard .lock{position:absolute;inset:0;display:grid;place-items:center;background:rgba(246,248,252,.72);border-radius:18px;font-size:30px}
+.wcard figcaption{font-size:14px;margin-top:4px;color:var(--muted)}
+.review{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:22px;align-items:start;margin-top:16px}
+.piles{display:flex;gap:16px;flex-wrap:wrap}
+.pile{flex:1;min-width:140px;border:3px solid var(--line);border-radius:var(--r);padding:12px;background:#fff}
+.pile b{font-size:34px;font-variant-numeric:tabular-nums}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(27,35,51,.55);display:grid;place-items:center;padding:16px}
+.modal .inner{background:#fff;border-radius:22px;border:3px solid var(--ink);padding:18px;width:min(460px,100%);max-height:90vh;overflow:auto;display:grid;gap:12px;justify-items:center}
+.modal .scard{width:min(260px,70vw)}
+
+/* settings */
+.set{display:grid;gap:16px;max-width:640px;margin-top:18px}
+.set label{font-weight:600;display:block;margin-bottom:6px}
+select{font:inherit;border:2px solid var(--line);border-radius:12px;padding:10px;min-height:48px;width:100%;background:#fff;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--ink)}
+
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(calc(100% + 60px));visibility:hidden;background:var(--ink);color:#fff;border-radius:14px;padding:12px 18px;font-weight:600;z-index:60;transition:transform .25s;max-width:calc(100% - 32px);text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:55}
+
+/* ---------- kid mode (student version) ---------- */
+body.kid{font-size:18px}
+.kid .brand b{font-size:22px}
+.kid .nav button{font-size:17px;padding:10px 18px}
+.kid .tab{font-size:17px;padding:10px 16px}
+.kid .stepfoot .btn{min-height:56px;font-size:19px;padding:12px 26px}
+.next{display:grid;grid-template-columns:150px minmax(0,1fr);gap:22px;align-items:center;margin-top:20px;background:var(--desk);border:3px solid var(--ink);border-radius:24px;padding:20px;box-shadow:0 5px 0 var(--ink)}
+.next .scard{width:150px}
+.next .big{font-family:var(--read);font-weight:700;font-size:clamp(48px,9vw,76px);line-height:1;color:var(--red)}
+.next .snd{font-family:var(--read);font-size:26px;color:var(--muted);margin-left:8px}
+.next h2{font-size:24px;margin-bottom:8px}
+.next .go{font-size:24px;min-height:64px;padding:12px 34px;margin-top:14px}
+.starbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px;font-weight:600}
+.starbar .meter{flex:1;min-width:160px;height:16px;border-radius:999px;background:var(--line);overflow:hidden}
+.starbar .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--k),#f2b705);border-radius:999px}
+.path{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:12px;margin-top:16px}
+.stop{position:relative;aspect-ratio:1;border-radius:22px;border:3px solid var(--line);background:#fff;display:grid;place-items:center;align-content:center;gap:2px;padding:6px;transition:transform .12s}
+.stop:hover{transform:translateY(-3px)}
+.stop .n{font-size:12px;color:var(--muted);font-weight:600}
+.stop .p{font-family:var(--read);font-weight:700;font-size:clamp(18px,3.6vw,24px);line-height:1.05;text-align:center;overflow-wrap:anywhere}
+.stop .st{position:absolute;top:-10px;right:-8px;font-size:22px;line-height:1}
+.stop.part{border-color:var(--sky-ink)}
+.stop.done{background:var(--sun);border-color:#e3b400}
+.stop.here{border-color:var(--ink);box-shadow:0 0 0 4px var(--sky);animation:bob 1.8s ease-in-out infinite}
+.grownups{margin-top:28px;text-align:center}
+.grownups button{border:0;background:none;color:var(--muted);text-decoration:underline;font-size:14px}
+@media (max-width:480px){.next{grid-template-columns:minmax(0,1fr)} .next .scard{width:120px} .path{grid-template-columns:repeat(auto-fill,minmax(74px,1fr))}}
+
+@media (max-width:820px){
+  .hero,.meet,.review{grid-template-columns:minmax(0,1fr)}
+  .seq{grid-template-columns:minmax(0,1fr)}
+  .meet .cardcol{max-width:260px;margin:0 auto;width:100%}
+  .review .cardcol{max-width:280px;margin:0 auto;width:100%}
+  .twocol{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:480px){
+  .brand b{font-size:17px}
+  .nav button{padding:6px 10px;font-size:14px}
+  .continue{flex-direction:column;align-items:flex-start}
+  .box{width:60px;height:72px;font-size:34px}
+  .tile{min-width:52px;min-height:66px;padding:4px 10px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <button class="brand" data-act="home" aria-label="Phonics Sound Studio home">
+      <span class="stack" aria-hidden="true"><i></i><i></i><i>a</i></span>
+      <b>Phonics Sound Studio</b>
+    </button>
+    <nav class="nav" aria-label="Main">
+      <button data-act="home" data-view="home">Lessons</button>
+      <button data-act="wall" data-view="wall">Sound Wall</button>
+      <button data-act="review" data-view="review">Card Review</button>
+      <button data-act="settings" data-view="settings">Voice &amp; Settings</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="main"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* KID = student version: no grade levels, no parent guides or timers. build-student.sh flips this. */
+const KID = true;
+/* On the public website the two apps link to each other; build-site.sh fills this in. Empty inside Claude. */
+const OTHER_APP = 'parent.html';
+/* ============================================================
+   1. SOUNDS — how each sound is shown and how the voice says it.
+   The computer voice can only approximate isolated sounds; words are reliable.
+   ============================================================ */
+const SND = {
+  a:['/ă/','aah'], e:['/ĕ/','eh'], i:['/ĭ/','ih'], o:['/ŏ/','ah'], u:['/ŭ/','uh'],
+  A:['/ā/','ay'], E:['/ē/','ee'], I:['/ī/','eye'], O:['/ō/','oh'], U:['/ū/','you'], U2:['/ū/','oo'],
+  oo:['/oo/','oo'], uu:['/ŏŏ/','uh'], sw:['/ə/','uh'],
+  b:['/b/','buh'], k:['/k/','kuh'], d:['/d/','duh'], f:['/f/','fff'], g:['/g/','guh'], h:['/h/','huh'],
+  j:['/j/','juh'], l:['/l/','lll'], m:['/m/','mmm'], n:['/n/','nnn'], p:['/p/','puh'], kw:['/kw/','kwuh'],
+  r:['/r/','rrr'], s:['/s/','sss'], t:['/t/','tuh'], v:['/v/','vvv'], w:['/w/','wuh'], ks:['/ks/','kss'],
+  y:['/y/','yuh'], z:['/z/','zzz'], sh:['/sh/','shh'], th:['/th/','thh'], ch:['/ch/','chuh'],
+  ng:['/ng/','ng'], nk:['/nk/','ngk'], ar:['/ar/','are'], or:['/or/','or'], er:['/er/','er'],
+  air:['/air/','air'], eer:['/eer/','ear'], aw:['/aw/','aw'], ow:['/ow/','ow'], oi:['/oi/','oy'],
+  yur:['/yoor/','yer'], '0':['silent','']
+};
+/* Default sound for each spelling when a word does not say otherwise. */
+const DEF = {a:'a',e:'e',i:'i',o:'o',u:'u',b:'b',c:'k',d:'d',f:'f',g:'g',h:'h',j:'j',k:'k',l:'l',m:'m',n:'n',p:'p',r:'r',s:'s',t:'t',v:'v',w:'w',x:'ks',y:'y',z:'z',
+  qu:'kw',ck:'k',sh:'sh',th:'th',ch:'ch',tch:'ch',wh:'w',ll:'l',ff:'f',ss:'s',zz:'z',tt:'t',mm:'m',nn:'n',pp:'p',dd:'d',gg:'g',bb:'b',
+  ng:'ng',nk:'nk',ph:'f',kn:'n',gn:'n',wr:'r',mb:'m',dge:'j',ee:'E',ea:'E',ai:'A',ay:'A',eigh:'A',oa:'O',ow:'O',oe:'O',igh:'I',ie:'I',ey:'E',
+  ue:'U2',ui:'U2',ew:'U2',oo:'oo',au:'aw',aw:'aw',augh:'aw',ough:'aw',oi:'oi',oy:'oi',ou:'ow',ar:'ar',or:'or',er:'er',ir:'er',ur:'er',ure:'yur',
+  oar:'or',oor:'or',our:'or',ore:'or',air:'air',are:'air',ear:'eer',eer:'eer'};
+
+/* ============================================================
+   2. SOUND CARDS — from the printed Phonics Sound Cards.
+   sp = spellings in the order printed on the card. "+" = added by the app (not printed).
+   cv = where the spelling area starts (fraction of card height), used by the review flap.
+   ============================================================ */
+const CARDS = {
+  short_a:{key:'apple', snd:'a', nm:'short a', sp:['a'], cv:.55, move:'Pretend to pick apples from a tree.', ico:'🍎'},
+  b:{key:'butterfly', snd:'b', sp:['b'], cv:.56, move:'Flap your arms like butterfly wings.', ico:'🦋'},
+  c:{key:'cupcake', snd:'k', sp:['c','ck'], cv:.47, move:'Hold a cupcake and take a big bite.', ico:'🧁'},
+  d:{key:'donut', snd:'d', sp:['d'], cv:.52, move:'Draw a big donut circle in the air.', ico:'🍩'},
+  short_e:{key:'elephant', snd:'e', nm:'short e', sp:['e','+ea'], cv:.55, move:'Swing one arm like an elephant trunk.', ico:'🐘'},
+  f:{key:'fish', snd:'f', sp:['f','ph','ff'], cv:.41, move:'Put your hands together and swim like a fish.', ico:'🐟'},
+  g:{key:'glue', snd:'g', sp:['g'], cv:.67, move:'Squeeze a glue bottle.', ico:'🧴'},
+  h:{key:'horse', snd:'h', sp:['h'], cv:.58, move:'Gallop in place like a horse.', ico:'🐴'},
+  short_i:{key:'itch', snd:'i', nm:'short i', sp:['i'], cv:.55, move:'Scratch an itchy arm.', ico:'🤚'},
+  j:{key:'jellyfish', snd:'j', sp:['j','gi','dge','ge'], cv:.62, move:'Wiggle your fingers down like jellyfish legs.', ico:'🪼'},
+  k:{key:'key', snd:'k', sp:['k','ck'], cv:.47, move:'Turn a key in a lock.', ico:'🔑'},
+  l:{key:'llama', snd:'l', sp:['l','ll'], cv:.6, move:'Stand tall and stretch your neck like a llama.', ico:'🦙'},
+  m:{key:'mitten', snd:'m', sp:['m','+mb'], cv:.54, move:'Clap your mitten hands together.', ico:'🧤'},
+  n:{key:'noodles', snd:'n', sp:['n','kn','+gn'], cv:.55, move:'Slurp noodles with chopsticks.', ico:'🍜'},
+  short_o:{key:'octopus', snd:'o', nm:'short o', sp:['o'], cv:.56, move:'Wave your arms like eight octopus arms.', ico:'🐙'},
+  p:{key:'pencil', snd:'p', sp:['p'], cv:.54, move:'Write in the air with a big pencil.', ico:'✏️'},
+  qu:{key:'question', snd:'kw', sp:['qu'], cv:.54, move:'Shrug your shoulders like you have a question.', ico:'❓'},
+  r:{key:'rain', snd:'r', sp:['r','wr'], cv:.55, move:'Wiggle your fingers down like rain.', ico:'🌧️'},
+  s:{key:'sun', snd:'s', sp:['s','ci','ce','+ss'], cv:.42, move:'Make a big sun circle with your arms.', ico:'☀️'},
+  t:{key:'turtle', snd:'t', sp:['t'], cv:.5, move:'Tuck your head in like a turtle.', ico:'🐢'},
+  short_u:{key:'umbrella', snd:'u', nm:'short u', sp:['u'], cv:.63, move:'Hold an umbrella over your head.', ico:'☂️'},
+  v:{key:'volcano', snd:'v', sp:['v'], cv:.65, move:'Press your hands together, then burst up like a volcano.', ico:'🌋'},
+  w:{key:'watermelon', snd:'w', sp:['w'], cv:.6, move:'Take a big watermelon bite.', ico:'🍉'},
+  x:{key:'x-ray', snd:'ks', sp:['x'], cv:.69, move:'Cross your arms in a big X.', ico:'🩻'},
+  y:{key:'yarn', snd:'y', sp:['y'], cv:.67, move:'Wind a ball of yarn in circles.', ico:'🧶'},
+  z:{key:'zipper', snd:'z', sp:['z','+s','+zz'], cv:.67, move:'Zip up your jacket.', ico:'🤐'},
+  ar:{key:'armadillo', snd:'ar', sp:['ar'], cv:.56, move:'Curl up into a ball like an armadillo.', ico:'🦔'},
+  wh:{key:'whistle', snd:'w', sp:['wh'], cv:.57, move:'Blow a whistle.', ico:'📣'},
+  er:{key:'urgent care', snd:'er', sp:['er','ir','ur','+ure'], cv:.57, move:'Put a bandage on your arm.', ico:'🩹'},
+  sh:{key:'shell', snd:'sh', sp:['sh'], cv:.57, move:'Hold a shell to your ear and put a finger to your lips.', ico:'🐚'},
+  th:{key:'thumb', snd:'th', sp:['th'], cv:.55, move:'Give a big thumbs up.', ico:'👍'},
+  ch:{key:'chin', snd:'ch', sp:['ch','tch'], cv:.55, move:'Tap your chin.', ico:'🙂'},
+  oo:{key:'ooze', snd:'oo', sp:['oo'], cv:.55, move:'Let your hands ooze down slowly.', ico:'🫗'},
+  aw:{key:'autumn', snd:'aw', sp:['aw','au','+augh','+ough'], cv:.55, move:'Let your hands float down like autumn leaves.', ico:'🍂'},
+  ow:{key:'owl', snd:'ow', sp:['ow','ou'], cv:.55, move:'Make big owl eyes with your fingers.', ico:'🦉'},
+  oi:{key:'oil', snd:'oi', sp:['oi','oy'], cv:.55, move:'Pour oil from a can.', ico:'🛢️'},
+  long_a:{key:'acorn', snd:'A', nm:'long a', sp:['a','ai','a_e','ay','+ea','+eigh'], cv:.47, move:'Hold a tiny acorn in your hand.', ico:'🌰'},
+  long_e:{key:'eagle', snd:'E', nm:'long e', sp:['e','e_e','ee','ea','y','ie','+ey'], cv:.47, move:'Spread your arms and soar like an eagle.', ico:'🦅'},
+  long_i:{key:'ice', snd:'I', nm:'long i', sp:['i','i_e','igh','ie','y'], cv:.46, move:'Shiver like you are holding ice.', ico:'🧊'},
+  long_o:{key:'oval', snd:'O', nm:'long o', sp:['o','o_e','oe','ow','oa'], cv:.45, move:'Trace a big oval in the air.', ico:'🥚'},
+  long_u:{key:'unicorn', snd:'U', nm:'long u', sp:['u','ew','u_e','ue','+ui'], cv:.49, move:'Put a unicorn horn on your head.', ico:'🦄'},
+  nk:{key:'pink', snd:'nk', sp:['nk'], cv:.58, move:'Point to something pink.', ico:'🍦'},
+  /* App-made cards for patterns in the sequence that have no printed card */
+  ng:{key:'ring', snd:'ng', sp:['ng'], made:'💍', tone:'sun', move:'Show off a ring on your finger.', ico:'💍'},
+  or:{key:'corn', snd:'or', sp:['or','oar','oor','our','ore'], made:'🌽', tone:'sun', move:'Eat corn on the cob.', ico:'🌽'},
+  air:{key:'chair', snd:'air', sp:['air','ear','are'], made:'🪑', tone:'sun', move:'Sit down in a chair.', ico:'🪑'},
+  eer:{key:'deer', snd:'eer', sp:['eer','ear'], made:'🦌', tone:'sun', move:'Make deer antlers with your hands.', ico:'🦌'},
+  schwa:{key:'banana', snd:'sw', nm:'schwa', sp:['a','e','i','o','u'], made:'🍌', tone:'sky', move:'Peel a banana.', ico:'🍌', kwHi:[1]},
+  book:{key:'book', snd:'uu', sp:['oo','u'], made:'📖', tone:'sun', move:'Open a book and read.', ico:'📖'}
+};
+const CARD_ORDER = ['short_a','b','c','d','short_e','f','g','h','short_i','j','k','l','m','n','short_o','p','qu','r','s','t','short_u','v','w','x','y','z','sh','th','ch','wh','ar','er','or','ng','nk','long_a','long_e','long_i','long_o','long_u','air','eer','schwa','oo','book','aw','ow','oi'];
+const cleanSp = s => s.replace(/^\+/,'');
+
+/* ============================================================
+   3. LESSONS — in the Recommended sound/spelling lesson order.
+   Word code: parts split by "-". "*" marks the new pattern. "=key" sets the sound.
+   "e_" is the silent e of a vowel-consonant-e pattern.
+   sem: 0 = K 2nd semester, 1 = 1st grade 1st semester, 2 = 1st grade 2nd semester.
+   ============================================================ */
+const MAGIC = {a:'A',i:'I',o:'O',u:'U',e:'E'};
+const RAW = [
+/* ---------- Kindergarten, 2nd semester ---------- */
+{id:'k1',sem:0,l:'a, m, s',s:'/ă/ /m/ /s/',c:['short_a','m','s'],p:['a','m','s'],w:'a*-m* S*-a*-m* m*-a*-ss*',h:['I am* Sam*.','Sam*! Sam*! I am* Sam*.']},
+{id:'k2',sem:0,l:'t',s:'/t/',c:['t'],p:['t'],w:'a-t* m-a-t* s-a-t* m-a-s-t* S-a-m',h:['Sam sat*.','Sam sat* at* a mat*.']},
+{id:'k3',sem:0,l:'p',s:'/p/',c:['p'],p:['p'],w:'p*-a-t m-a-p* s-a-p* t-a-p* s-p*-a-t P*-a-m p*-a-s-t s-t-a-m-p*',h:['Pam* sat at a map*.','Tap*, tap*, tap*!']},
+{id:'k4',sem:0,l:'f',s:'/f/',c:['f'],p:['f'],w:'f*-a-t f*-a-s-t m-a-p s-a-t',h:['Pam is fast*.','Sam sat at a fat* map.']},
+{id:'k5',sem:0,l:'d',s:'/d/',c:['d'],p:['d'],w:'d*-a-d* m-a-d* s-a-d* p-a-d* t-a-d* d*-a-m-p',h:['Dad* is mad*.','Sad* Dad* sat at a pad*.']},
+{id:'k6',sem:0,l:'i',s:'/ĭ/',c:['short_i'],p:['i'],w:'i*-t s-i*-t p-i*-t f-i*-t d-i*-d d-i*-p t-i*-p s-i*-p m-i*-s-t i*-f',h:['Sit*, Pam, sit*.','Dad did* it*.']},
+{id:'k7',sem:0,l:'n',s:'/n/',c:['n'],p:['n'],w:'n*-a-p p-a-n* f-a-n* m-a-n* t-i-n* p-i-n* f-i-n* a-n*-d s-a-n*-d m-i-n*-t',h:['Nan* and* Dan* nap*.','Tim sat in* sand*.']},
+{id:'k8',sem:0,l:'o',s:'/ŏ/',c:['short_o'],p:['o'],w:'o*-n n-o*-t p-o*-t d-o*-t t-o*-p m-o*-p p-o*-p s-t-o*-p p-o*-n-d',h:['Pop* is on* top*.','Stop*, Dot*!']},
+{id:'k9',sem:0,l:'c',s:'/k/',c:['c'],p:['c'],w:'c*-a-t c*-a-n c*-a-p c*-o-d c*-o-t c*-a-m-p c*-a-s-t',h:['A cat* can* nap.','Cam* can* tap a can*.']},
+{id:'k10',sem:0,l:'k',s:'/k/',c:['k'],p:['k'],w:'k*-i-d k*-i-t K*-i-m s-k*-i-p s-k*-i-d s-k*-i-m a-s-k* k*-i-n',h:['Kim* and Kit* skip*.','A kid* can skip*.']},
+{id:'k11',sem:0,l:'u',s:'/ŭ/',c:['short_u'],p:['u'],w:'u*-p c-u*-p p-u*-p s-u*-n f-u*-n n-u*-t c-u*-t m-u*-d d-u*-s-t m-u*-s-t',h:['A pup* is in the mud*.','Cut* the nut*.','The sun* is fun*!']},
+{id:'k12',sem:0,l:'ck',s:'/k/',c:['c','k'],p:['ck'],w:'d-u-ck* s-o-ck* p-i-ck* t-i-ck* s-i-ck* s-a-ck* k-i-ck* p-a-ck* s-t-u-ck* d-o-ck*',h:['A duck* is stuck* in muck*.','Pick* up a sock*.']},
+{id:'k13',sem:0,l:'b',s:'/b/',c:['b'],p:['b'],w:'b*-a-t b*-a-d b*-i-b* b*-i-t b*-u-n b*-u-t b*-u-s c-a-b* t-u-b* c-u-b* b*-a-ck',h:['Bob* sat in a cab*.','A cub* can bat*.']},
+{id:'k14',sem:0,l:'g',s:'/g/',c:['g'],p:['g'],w:'g*-a-s g*-o-t g*-u-m b-a-g* b-i-g* d-i-g* d-o-g* f-i-g* p-i-g* t-a-g*',h:['A pig* dug* in mud.','Dig*, dog*, dig*!']},
+{id:'k15',sem:0,l:'e',s:'/ĕ/',c:['short_e'],p:['e'],w:'b-e*-d b-e*-g p-e*-t n-e*-t t-e*-n p-e*-n s-e*-t f-e*-d g-e*-t s-t-e*-p d-e*-s-k n-e*-ck',h:['Ted* fed* ten* pets*.','Get* in bed*.']},
+{id:'k16',sem:0,l:'h',s:'/h/',c:['h'],p:['h'],w:'h*-a-t h*-e-n h*-i-m h*-i-p h*-o-p h*-o-t h*-u-m h*-u-g h*-u-t h*-i-d',h:['The hen* hid* in a hut*.','Hop*, hop*, hop*!']},
+{id:'k17',sem:0,l:'s',s:'/z/',c:['z'],p:['s'],m:{s:'z'},w:'i-s* h-i-s* h-a-s* a-s* b-a-g-s* d-o-g-s* p-i-g-s* b-e-d-s* h-u-g-s*',h:['His* dog is* big.','Ben has* pigs* and hens*.']},
+{id:'k18',sem:0,l:'r',s:'/r/',c:['r'],p:['r'],w:'r*-a-t r*-e-d r*-i-p r*-o-b r*-u-g r*-u-n r*-i-b f-r*-o-g c-r*-i-b d-r*-u-m t-r*-i-p',h:['A red* frog* ran*.','Run*, run*, run*!']},
+{id:'k19',sem:0,l:'l',s:'/l/',c:['l'],p:['l'],w:'l*-a-p l*-e-g l*-i-d l*-i-p l*-o-g s-l*-i-p f-l*-a-g c-l*-a-p p-l*-u-m b-e-l*-t l*-a-m-p',h:['A frog is on a log*.','Clap* and stomp.']},
+{id:'k20',sem:0,l:'w',s:'/w/',c:['w'],p:['w'],w:'w*-e-t w*-e-b w*-i-g w*-i-n w*-a-g s-w*-i-m t-w*-i-n w*-e-n-t w*-e-s-t',h:['The dog can wag*.','Wes* went* west*.']},
+{id:'k21',sem:0,l:'j',s:'/j/',c:['j'],p:['j'],w:'j*-a-m j*-e-t j*-o-g j*-u-g j*-o-b j*-u-m-p j*-u-s-t',h:['Jen* can jump*.','Jam* is in the jug*.']},
+{id:'k22',sem:0,l:'y',s:'/y/',c:['y'],p:['y'],w:'y*-e-s y*-e-t y*-a-k y*-a-p y*-a-m y*-u-m y*-e-l-p',h:['Yes*! A yak*!','Yum*, yum*, yams*.']},
+{id:'k23',sem:0,l:'x',s:'/ks/',c:['x'],p:['x'],w:'a-x* b-o-x* f-o-x* f-i-x* m-i-x* s-i-x* w-a-x* o-x* n-e-x*-t',h:['A fox* is in a box*.','Mix* and fix*.']},
+{id:'k24',sem:0,l:'qu',s:'/kw/',c:['qu'],p:['qu'],w:'qu*-i-t qu*-i-z qu*-e-s-t qu*-i-ck qu*-a-ck s-qu*-i-d',h:['The duck can quack*.','Quick*! Quiz* Pam.']},
+{id:'k24v',sem:0,l:'v',s:'/v/',c:['v'],p:['v'],w:'v*-a-n v*-e-t v*-e-s-t v*-a-t v*-e-l-v*-e-t',h:['Val* has a van*.','The vet* has a vest*.']},
+{id:'k25',sem:0,l:'z',s:'/z/',c:['z'],p:['z'],w:'z*-i-p z*-a-p z*-i-g z*-a-g z*-e-s-t z*-i-g-z*-a-g',h:['Zip* and zap*!','Zigzag* on the rug.']},
+{id:'k26',sem:0,l:'sh',s:'/sh/',c:['sh'],p:['sh'],w:'sh*-i-p sh*-o-p sh*-e-d sh*-u-t f-i-sh* d-i-sh* w-i-sh* c-a-sh* r-u-sh* sh*-r-i-m-p',h:['A fish* is in a dish*.','Shut* the shed*.']},
+{id:'k27',sem:0,l:'th',s:'/th/',c:['th'],p:['th'],w:'th*-i-n th*-i-ck th*-u-d p-a-th* b-a-th* m-a-th* m-o-th* w-i-th* th*-a-t th*-i-s',h:['This* moth* is thin*.','Do math* in the bath*.']},
+{id:'k28',sem:0,l:'ch',s:'/ch/',c:['ch'],p:['ch'],w:'ch*-i-n ch*-i-p ch*-o-p ch*-a-t ch*-e-s-t ch*-i-ck m-u-ch* r-i-ch* l-u-n-ch* m-u-n-ch*',h:['Chip* has a chick*.','Munch* lunch*.']},
+{id:'k29',sem:0,l:'w, wh',s:'/w/',c:['w','wh'],p:['w','wh'],w:'wh*-e-n wh*-i-ch wh*-i-p wh*-i-z wh*-i-s-k wh*-a-m w*-e-t w*-i-n',h:['When* is lunch?','Whisk* it, Wes*!']},
+{id:'k30',sem:0,l:'ll',s:'/l/',c:['l'],p:['ll'],w:'b-e-ll* h-i-ll* d-o-ll* f-e-ll* w-e-ll* t-e-ll* w-i-ll* p-i-ll* s-e-ll*',h:['The bell* fell* off the hill*.','Will* you tell* Nell*?']},
+{id:'k30f',sem:0,l:'ff',s:'/f/',c:['f'],p:['ff'],w:'p-u-ff* c-u-ff* s-t-u-ff* o-ff* h-u-ff* c-l-i-ff* s-n-i-ff*',h:['Puff*, puff*!','Sniff* the stuff* on the cliff*.']},
+{id:'k30s',sem:0,l:'ss',s:'/s/',c:['s'],p:['ss'],w:'m-e-ss* k-i-ss* p-a-ss* m-i-ss* l-e-ss* t-o-ss* b-o-ss* f-u-ss* d-r-e-ss*',h:['Do not toss* the dress* in the mess*.','Pass* it to Miss* Bess*.']},
+{id:'k30z',sem:0,l:'zz',s:'/z/',c:['z'],p:['zz'],w:'b-u-zz* f-u-zz* j-a-zz* f-i-zz*',h:['Buzz*, buzz*!','Jazz* has fizz*.']},
+/* ---------- 1st grade, 1st semester ---------- */
+{id:'a1',sem:1,l:'a_e',s:'/ā/',day:1,c:['long_a'],p:['a_e'],m:MAGIC,w:'c-a*-k-e_* m-a*-k-e_* b-a*-k-e_* l-a*-k-e_* t-a*-k-e_* n-a*-m-e_* g-a*-m-e_* s-a*-m-e_* t-a*-p-e_* g-a*-t-e_*',h:['Jake* can bake* a cake*.','Take* the tape* to the gate*.']},
+{id:'a2',sem:1,l:'a_e',s:'/ā/',day:2,c:['long_a'],p:['a_e'],m:MAGIC,w:'c-a*-v-e_* w-a*-v-e_* s-a*-v-e_* s-a*-f-e_* m-a*-d-e_* f-a*-d-e_* p-l-a*-n-e_* s-n-a*-k-e_* sh-a*-k-e_* g-r-a*-p-e_*',h:['The snake* is in the cave*.','Wave* at the plane*.']},
+{id:'a3',sem:1,l:'a_e',s:'/ā/',day:3,c:['long_a'],p:['a_e'],m:MAGIC,w:'b-r-a*-v-e_* b-l-a*-m-e_* f-l-a*-m-e_* s-k-a*-t-e_* p-l-a*-t-e_* t-r-a*-d-e_* sh-a*-d-e_* ch-a*-s-e_* wh-a*-l-e_* c-r-a*-t-e_*',h:['A whale* can wave*.','Skate* in the shade*.']},
+{id:'a4',sem:1,l:'a, a_e',s:'/ă/ /ā/',c:['short_a','long_a'],p:['a','a_e'],w:'c-a*-p c-a*=A-p-e_* t-a*-p t-a*=A-p-e_* m-a*-d m-a*=A-d-e_* c-a*-n c-a*=A-n-e_* p-l-a*-n p-l-a*=A-n-e_* h-a*-t h-a*=A-t-e_*',h:['Sam* made* a cape*.','Can* Jane* tap* the tape*?']},
+{id:'a5',sem:1,l:'i_e',s:'/ī/',day:1,c:['long_i'],p:['i_e'],m:MAGIC,w:'b-i*-k-e_* l-i*-k-e_* h-i*-k-e_* k-i*-t-e_* b-i*-t-e_* t-i*-m-e_* d-i*-m-e_* l-i*-n-e_* f-i*-n-e_* p-i*-n-e_*',h:['Mike* will hike* at nine*.','Ride* a bike* in the pines*.']},
+{id:'a6',sem:1,l:'i_e',s:'/ī/',day:2,c:['long_i'],p:['i_e'],m:MAGIC,w:'r-i*-d-e_* h-i*-d-e_* w-i*-d-e_* s-i*-d-e_* f-i*-v-e_* d-i*-v-e_* s-m-i*-l-e_* s-l-i*-d-e_* wh-i*-t-e_* wh-i*-l-e_*',h:['Hide* at the slide*.','Smile* wide*!']},
+{id:'a7',sem:1,l:'i, i_e',s:'/ĭ/ /ī/',c:['short_i','long_i'],p:['i','i_e'],w:'p-i*-n p-i*=I-n-e_* k-i*-t k-i*=I-t-e_* b-i*-t b-i*=I-t-e_* r-i*-d r-i*=I-d-e_* d-i*-m d-i*=I-m-e_* f-i*-n f-i*=I-n-e_*',h:['Tim* will* hike* to a pine*.','The kit* has a kite*.']},
+{id:'a8',sem:1,l:'a_e, i_e',s:'/ā/ /ī/',from:['a1','a5'],c:['long_a','long_i'],p:['a_e','i_e'],h:['Kate* can ride* a bike* to the lake*.','Make* a kite* with tape*.']},
+{id:'a9',sem:1,l:'o_e',s:'/ō/',day:1,c:['long_o'],p:['o_e'],m:MAGIC,w:'h-o*-m-e_* h-o*-l-e_* p-o*-l-e_* m-o*-l-e_* r-o*-p-e_* h-o*-p-e_* n-o*-t-e_* v-o*-t-e_* b-o*-n-e_* c-o*-n-e_*',h:['The mole* is in a hole*.','Take the note* home*.']},
+{id:'a10',sem:1,l:'o_e',s:'/ō/',day:2,c:['long_o'],p:['o_e'],m:MAGIC,w:'r-o*-s=z-e_* n-o*-s=z-e_* h-o*-s=z-e_* s-t-o*-n-e_* s-t-o*-v-e_* s-m-o*-k-e_* b-r-o*-k-e_* j-o*-k-e_* g-l-o*-b-e_* th-o*-s=z-e_*',h:['Smoke* came from the stove*.','Rose* broke* a stone*.']},
+{id:'a11',sem:1,l:'o, o_e',s:'/ŏ/ /ō/',c:['short_o','long_o'],p:['o','o_e'],w:'h-o*-p h-o*=O-p-e_* n-o*-t n-o*=O-t-e_* r-o*-b r-o*=O-b-e_* c-o*-d c-o*=O-d-e_* g-l-o*-b g-l-o*=O-b-e_* m-o*-p m-o*=O-p-e_*',h:['I hope* the mop* is not* wet.','Rob* has a robe*.']},
+{id:'a12',sem:1,l:'a_e, i_e, o_e',s:'/ā/ /ī/ /ō/',from:['a1','a5','a9'],c:['long_a','long_i','long_o'],p:['a_e','i_e','o_e'],h:['Mike* rode* home* on a bike*.','Kate* made* a joke*.']},
+{id:'a13',sem:1,l:'u_e',s:'/ū/',day:1,c:['long_u'],p:['u_e'],m:MAGIC,w:'c-u*-t-e_* m-u*-l-e_* c-u*-b-e_* t-u*=U2-b-e_* u*-s=z-e_* h-u*-g=j-e_* f-u*-s=z-e_* m-u*-t-e_* t-u*=U2-n-e_* J-u*=U2-n-e_*',h:['The mule* is cute*.','Use* the tube*.']},
+{id:'a14',sem:1,l:'u_e',s:'/ū/',day:2,c:['long_u'],p:['u_e'],m:{u:'U2'},w:'r-u*-l-e_* f-l-u*-t-e_* p-r-u*-n-e_* d-u*-n-e_* d-u*-k-e_* p-l-u*-m-e_* r-u*-d-e_* L-u*-k-e_*',h:['Luke* has a flute*.','Do not be rude*. That is the rule*.']},
+{id:'a15',sem:1,l:'u, u_e',s:'/ŭ/ /ū/',c:['short_u','long_u'],p:['u','u_e'],w:'c-u*-b c-u*=U-b-e_* t-u*-b t-u*=U2-b-e_* c-u*-t c-u*=U-t-e_* u*-s u*=U-s=z-e_* h-u*-g h-u*=U-g=j-e_* d-u*-n d-u*=U2-n-e_*',h:['The cub* is cute*.','A huge* bug* sat on a cube*.']},
+{id:'a16',sem:1,l:'a_e, i_e, o_e, u_e',s:'/ā/ /ī/ /ō/ /ū/',from:['a1','a5','a9','a13'],c:['long_a','long_i','long_o','long_u'],p:['a_e','i_e','o_e','u_e'],h:['June* rode* a mule* home*.','Make* a cute* kite*.']},
+{id:'a17',sem:1,l:'e',s:'/ē/',c:['long_e'],p:['e'],m:{e:'E'},w:'h-e* m-e* w-e* b-e* sh-e* e*-m-u=U e*-v-e=sw-n',h:['We* can be* in the van.','She* and he* went home.']},
+{id:'a18',sem:1,l:'e_e',s:'/ē/',c:['long_e'],p:['e_e'],m:MAGIC,w:'th-e*-s=z-e_* P-e*-t-e_* th-e*-m-e_* S-t-e*-v-e_* E*-v-e_* c-o=sw-m-p-e*-t-e_* c-o=sw-m-p-l-e*-t-e_* d-e=E-l-e*-t-e_*',h:['Pete* and Steve* compete*.','These* are for me.']},
+{id:'a19',sem:1,l:'a_e, i_e, o_e, u_e, e_e',s:'long vowels',from:['a2','a6','a10','a14','a18'],c:['long_a','long_i','long_o','long_u','long_e'],p:['a_e','i_e','o_e','u_e','e_e'],h:['Steve* rode* a bike* to the lake*.','These* cute* mules* ate* the pine* cones*.']},
+{id:'a20',sem:1,l:'ce',s:'/s/',c:['s'],p:['ce'],m:{c:'s'},w:'c*-e-n-t c*-e-ll i=I-c*-e_ n-i=I-c*-e_ r-i=I-c*-e_ m-i=I-c*-e_ f-a=A-c*-e_ r-a=A-c*-e_ l-a=A-c*-e_ p-l-a=A-c*-e_ s-p-a=A-c*-e_',h:['Mice* like rice*.','Grace* ran in a race*.']},
+{id:'a20i',sem:1,l:'ci',s:'/s/',c:['s'],p:['ci'],m:{c:'s'},w:'c*-i-n-ch c*-i=I-t-e_ c*-i-v-i-c d-e=E-c*-i=I-d-e_ e-x-c*-i=I-t-e_',h:['Decide* which one.','It is a cinch*!']},
+{id:'a21',sem:1,l:'c, s, ss /s/; c /k/',s:'/s/ /k/',c:['s','c'],p:['c','s','ss'],w:'s*-u-n m-i-ss* c*=s-e-n-t i=I-c*=s-e_ c*-a-t c*-u-p f-a=A-c*=s-e_ m-e-ss* c*-a=A-k-e_ g-l-a-ss*',h:['The cat* has a nice* face*.','Miss* Bess* sat* in the sun*.']},
+{id:'a22',sem:1,l:'ge',s:'/j/',c:['j'],p:['ge'],m:{g:'j'},w:'g*-e-m g*-e-l a=A-g*-e_ c-a=A-g*-e_ p-a=A-g*-e_ s-t-a=A-g*-e_ h-u=U-g*-e_ w-a=A-g*-e_ r-a=A-g*-e_',h:['The gem* is in a cage*.','Go on stage*!']},
+{id:'a22i',sem:1,l:'gi',s:'/j/',c:['j'],p:['gi'],m:{g:'j'},w:'m-a-g*-i-c d-i-g*-i-t l-o-g*-i-c r-i-g*-i-d f-r-i-g*-i-d t-r-a-g*-i-c',h:['It is magic*!','Add the digit*.']},
+{id:'a23',sem:1,l:'j, g /j/; g /g/',s:'/j/ /g/',c:['j','g'],p:['j','g'],w:'j*-a-m g*=j-e-m g*-u-m p-a=A-g*=j-e_ j*-e-t g*-i-f-t c-a=A-g*=j-e_ g*-a=A-m-e_',h:['Jill* got* a gem*.','The gem* is in the jug*.']},
+{id:'a23d',sem:1,l:'dge',s:'/j/',c:['j'],p:['dge'],w:'e-dge* b-a-dge* f-u-dge* j-u-dge* b-r-i-dge* l-e-dge* h-e-dge* n-u-dge* r-i-dge* s-m-u-dge*',h:['The judge* has a badge*.','Fudge* is on the ledge*.']},
+{id:'a24',sem:1,l:'hard and soft review',s:'c, g',c:['c','s','g','j'],p:['c','g'],w:'c*-a-t c*=s-e-n-t g*-u-m g*=j-e-m c*-a=A-k-e_ i=I-c*=s-e_ p-a=A-g*=j-e_ c*-u-p c*-a=A-g*=j-e_ g*-a-s f-a=A-c*=s-e_ g*-a=A-m-e_',h:['The cat* is in a cage*.','Grace* has a gem* and gum*.']},
+{id:'a25',sem:1,l:'y',s:'/ī/',c:['long_i'],p:['y'],m:{y:'I'},w:'m-y* b-y* f-l-y* c-r-y* d-r-y* t-r-y* s-k-y* sh-y* wh-y* s-p-y*',h:['Why* did the kid cry*?','My* fly* can fly* in the sky*.']},
+{id:'a26',sem:1,l:'-nk',s:'/nk/',c:['nk'],p:['nk'],w:'p-i-nk* s-i-nk* w-i-nk* th-i-nk* b-a-nk* t-a-nk* th-a-nk* h-o-nk* j-u-nk* t-r-u-nk* s-k-u-nk*',h:['Think* pink*!','The skunk* is in the trunk*.']},
+{id:'a27',sem:1,l:'-ng',s:'/ng/',c:['ng'],p:['ng'],w:'r-i-ng* s-i-ng* k-i-ng* w-i-ng* th-i-ng* b-a-ng* h-a-ng* s-o-ng* l-o-ng* s-t-r-o-ng* l-u-ng*',h:['The king* can sing* a song*.','Hang* the ring* on a string*.']},
+{id:'a28',sem:1,l:'ar',s:'/ar/',c:['ar'],p:['ar'],w:'c-ar* s-t-ar* j-ar* f-ar* f-ar*-m b-ar*-n p-ar*-k d-ar*-k sh-ar*-k c-ar*-t y-ar*-d',h:['A shark* swam far*.','The car* is in the yard*.']},
+{id:'a29',sem:1,l:'or',s:'/or/',c:['or'],p:['or'],w:'f-or* c-or*-n h-or*-n f-or*-k p-or*-ch sh-or*-t s-t-or*-m s-p-or*-t n-or*-th t-or*-n',h:['The corn* is on the porch*.','Get a fork* for* the corn*.']},
+{id:'a30',sem:1,l:'er',s:'/er/',c:['er'],p:['er'],w:'h-er* f-er*-n h-er*-d t-er*-m p-er*-ch c-l-er*-k s-i-s-t-er* b-e-tt-er* u-n-d-er* w-i-n-t-er*',h:['Her* sister* is under* the fern*.','Winter* is better* with her* sister*.']},
+{id:'a31',sem:1,l:'ir',s:'/er/',c:['er'],p:['ir'],w:'b-ir*-d g-ir*-l s-ir* s-t-ir* f-ir*-s-t sh-ir*-t s-k-ir*-t d-ir*-t th-ir*-d b-ir*-th',h:['The girl* has a bird*.','Stir* the dirt* first*.']},
+{id:'a32',sem:1,l:'ur',s:'/er/',c:['er'],p:['ur'],w:'f-ur* b-ur*-n t-ur*-n h-ur*-t c-ur*-l s-ur*-f ch-ur*-ch',h:['Turn* left at the church*.','The cat has soft fur*.']},
+{id:'a32u',sem:1,l:'ure',s:'/yoor/',c:['er'],p:['ure'],w:'p-ure* c-ure* c-ure*-s=z s-e=E-c-ure*',h:['The cat has pure* white fur.','The vet can cure* the pup.']},
+/* ---------- 1st grade, 2nd semester ---------- */
+{id:'b1',sem:2,l:'oar',s:'/or/',c:['or'],p:['oar'],w:'r-oar* oar* b-oar* s-oar* b-oar*-d h-oar*-d',h:['The boar* can roar*.','Hold the oar*.']},
+{id:'b1o',sem:2,l:'oor',s:'/or/',c:['or'],p:['oor'],w:'d-oor* f-l-oor* d-oor*-s=z f-l-oor*-s=z i-n-d-oor*',h:['Sit on the floor* by the door*.','Shut the doors*.']},
+{id:'b2',sem:2,l:'our',s:'/or/',c:['or'],p:['our'],w:'p-our* f-our* y-our* c-our*-t f-our*-th',h:['Pour* four* cups.','Is this your* hat?']},
+{id:'b2o',sem:2,l:'ore',s:'/or/',c:['or'],p:['ore'],w:'m-ore* ch-ore* s-t-ore* sh-ore* c-ore* s-n-ore* s-c-ore* b-e=E-f-ore*',h:['Pick up more* shells at the shore*.','Do the chore* before* you go to the store*.']},
+{id:'b3',sem:2,l:'air',s:'/air/',c:['air'],p:['air'],w:'f-air* h-air* p-air* ch-air* s-t-air*-s=z air*',h:['Sit in the chair* by the stairs*.','Brush your hair*.']},
+{id:'b3e',sem:2,l:'ear',s:'/air/',c:['air'],p:['ear'],m:{ear:'air'},w:'p-ear* b-ear* w-ear* s-w-ear* p-ear*-s=z b-ear*-s=z',h:['A bear* ate a pear*.','Wear* a hat.']},
+{id:'b3a',sem:2,l:'are',s:'/air/',c:['air'],p:['are'],w:'c-are* sh-are* r-are* d-are* s-c-are* b-are* g-l-are* s-t-are*',h:['Share* the snack.','Do not stare*.']},
+{id:'b4',sem:2,l:'eer',s:'/eer/',c:['eer'],p:['eer'],w:'d-eer* ch-eer* s-t-eer* p-eer* s-n-eer* j-eer*',h:['Cheer* for the deer*!','Steer* the cart.']},
+{id:'b4e',sem:2,l:'ear',s:'/eer/',c:['eer'],p:['ear'],w:'r-ear* n-ear* h-ear* f-ear* c-l-ear* y-ear* g-ear* d-ear*',h:['I hear* a deer near* me.','Cheer this year*!']},
+{id:'b5',sem:2,l:'r-controlled review',s:'ar or er air eer',from:['a28','a29','a30','a31','b1','b2o','b3','b3a','b4','b4e'],c:['ar','or','er','air','eer'],p:['ar','or','er','ir','ur','air','eer'],h:['The bird* sat on a fern* near* the barn*.','Her* chair* is by the door*.']},
+{id:'b6',sem:2,l:'a (schwa)',s:'/ə/',c:['schwa'],p:['a'],m:{a:'sw'},w:'s-o=O-f-a* p-a-n-d-a* c-o-mm-a* z-e=E-b-r-a* b-a*-n-a-n-a* t-u=U2-b-a* e-x-t-r-a* p-a-s-t-a* a*-l-ar-m a*-g-o=O',h:['A panda* sat on the sofa*.','Pasta* and a banana*!']},
+{id:'b7',sem:2,l:'o (schwa)',s:'/ə/',c:['schwa'],p:['o'],m:{o:'sw'},w:'l-e-m-o*-n w-a-g-o*-n b-u-tt-o*-n c-o-tt-o*-n m-e-l-o*-n b-a=A-c-o*-n',h:['A lemon* is in the wagon*.','Press the button*.']},
+{id:'b7e',sem:2,l:'e (schwa)',s:'/ə/',c:['schwa'],p:['e'],m:{e:'sw'},w:'k-i-tt-e*-n s-e-v-e*-n p-r-o-b-l-e*-m ch-i-ck-e*-n t-r-a-v-e*-l g-ar-d-e*-n',h:['The kitten* is seven*.','The chicken* has a problem*.']},
+{id:'b7i',sem:2,l:'i (schwa)',s:'/ə/',c:['schwa'],p:['i'],m:{i:'sw'},w:'p-e-n-c=s-i*-l r-o-b-i*-n c-a-b-i*-n m-u-ff-i*-n n-a-p-k-i*-n p-u-m-p-k-i*-n',h:['A robin* sat on the cabin*.','Get a pencil* and a napkin*.']},
+{id:'b8',sem:2,l:'kn',s:'/n/',c:['n'],p:['kn'],w:'kn*-o-t kn*-o-b kn*-i-t kn*-o-ck kn*-i=I-f-e_',h:['Knock*, knock*!','Tie a knot*.']},
+{id:'b8g',sem:2,l:'gn',s:'/n/',c:['n'],p:['gn'],w:'gn*-a-t s-i=I-gn* gn*-a-t-s',h:['A gnat* sat on the sign*.','Look at the sign*.']},
+{id:'b9',sem:2,l:'wr',s:'/r/',c:['r'],p:['wr'],w:'wr*-a-p wr*-e-n wr*-i-s-t wr*-e-ck wr*-i=I-t-e_ wr*-o=O-t-e_ wr*-o-ng',h:['Write* on the wrap*.','The wren* sat on my wrist*.']},
+{id:'b9m',sem:2,l:'mb',s:'/m/',c:['m'],p:['mb'],w:'l-a-mb* c-o=O-mb* c-l-i=I-mb* th-u-mb* c-r-u-mb* n-u-mb* l-i-mb*',h:['The lamb* will climb*.','A crumb* is on my thumb*.']},
+{id:'b10',sem:2,l:'ph',s:'/f/',c:['f'],p:['ph'],w:'ph*-o=O-n-e_ ph*-o=O-t-o=O g-r-a-ph* Ph*-i-l d-o-l-ph*-i-n e-l-e=sw-ph*-a=sw-n-t a-l-ph*-a=sw-b-e-t R-a-l-ph*',h:['Ralph* has a phone*.','The dolphin* and the elephant*.']},
+{id:'b11',sem:2,l:'ay',s:'/ā/',c:['long_a'],p:['ay'],w:'d-ay* p-l-ay* s-ay* s-t-ay* t-r-ay* c-l-ay* g-r-ay* s-p-r-ay* a=sw-w-ay* c-r-ay*-o=sw-n',h:['Play* all day*!','Stay* away* from the spray*.']},
+{id:'b12',sem:2,l:'ai',s:'/ā/',c:['long_a'],p:['ai'],w:'r-ai*-n t-r-ai*-n m-ai*-l n-ai*-l t-ai*-l p-ai*-n-t s-n-ai*-l w-ai*-t ch-ai*-n b-r-ai*-n',h:['The snail* is in the rain*.','Wait* for the train*.']},
+{id:'b13',sem:2,l:'ea',s:'/ā/',c:['long_a'],p:['ea'],m:{ea:'A'},w:'g-r-ea*-t b-r-ea*-k s-t-ea*-k',h:['The steak* is great*!','Do not break* it.']},
+{id:'b14e',sem:2,l:'eigh',s:'/ā/',c:['long_a'],p:['eigh'],w:'eigh*-t w-eigh* s-l-eigh* n-eigh* f-r-eigh*-t w-eigh*-t',h:['Eight* horses neigh*.','Weigh* the sleigh*.']},
+{id:'b14',sem:2,l:'ay, ai, ea, eigh',s:'/ā/',from:['b11','b12','b13','b14e'],c:['long_a'],p:['ay','ai','ea','eigh'],h:['Eight* snails* play* in the rain*.','Weigh* the great* steak*.']},
+{id:'b15',sem:2,l:'ee',s:'/ē/',c:['long_e'],p:['ee'],w:'s-ee* b-ee* t-r-ee* f-ee*-t g-r-ee*-n s-l-ee*-p sh-ee*-p th-r-ee* wh-ee*-l qu-ee*-n',h:['Three* sheep* sleep*.','A bee* is in the green* tree*.']},
+{id:'b16',sem:2,l:'ea',s:'/ē/',c:['long_e'],p:['ea'],w:'ea*-t s-ea* t-ea* l-ea*-f b-ea*-ch d-r-ea*-m c-l-ea*-n p-ea*-ch t-ea*-m',h:['Eat* a peach* at the beach*.','Clean* up, team*!']},
+{id:'b17',sem:2,l:'ey',s:'/ē/',c:['long_e'],p:['ey'],w:'k-ey* d-o-n-k-ey* h-o-ck-ey* v-a-ll-ey* t-ur-k-ey*',h:['The donkey* has a key*.','Play hockey* in the valley*.']},
+{id:'b17y',sem:2,l:'y',s:'/ē/',c:['long_e'],p:['y'],m:{y:'E'},w:'h-a-pp-y* f-u-nn-y* c-a-n-d-y* p-u-pp-y* s-u-nn-y* s-i-ll-y*',h:['My puppy* is funny*.','It is sunny* and I am happy*.']},
+{id:'b18',sem:2,l:'ee, ea, ey, y',s:'/ē/',from:['b15','b16','b17','b17y'],c:['long_e'],p:['ee','ea','ey','y'],h:['We eat* candy* by the sea*.','Three* happy* bees* sleep* in a tree*.']},
+{id:'b19',sem:2,l:'ea',s:'/ĕ/',c:['short_e'],p:['ea'],m:{ea:'e'},w:'h-ea*-d b-r-ea*-d s-p-r-ea*-d d-ea*-d b-r-ea*-th th-r-ea*-d f-ea*-th-er s-w-ea*-t',h:['Spread* jam on the bread*.','A feather* is on my head*.']},
+{id:'b20',sem:2,l:'oa',s:'/ō/',c:['long_o'],p:['oa'],w:'b-oa*-t c-oa*-t g-oa*-t r-oa*-d s-oa*-p t-oa*-d f-l-oa*-t c-oa*-ch t-oa*-s-t l-oa*-f',h:['A goat* in a boat*!','The toad* is on the road*.']},
+{id:'b21',sem:2,l:'ow',s:'/ō/',c:['long_o'],p:['ow'],m:{ow:'O'},w:'s-n-ow* g-r-ow* sh-ow* s-l-ow* b-l-ow* c-r-ow* b-ow*-l w-i-n-d-ow* y-e-ll-ow* p-i-ll-ow*',h:['Snow* is slow*.','A yellow* crow* at the window*.']},
+{id:'b22e',sem:2,l:'oe',s:'/ō/',c:['long_o'],p:['oe'],w:'t-oe* h-oe* J-oe* f-oe* g-oe*-s=z w-oe*',h:['Joe* goes* on his toes*.','Dig with a hoe*.']},
+{id:'b22',sem:2,l:'oa, ow, oe',s:'/ō/',from:['b20','b21','b22e'],c:['long_o'],p:['oa','ow','oe'],h:['Joe* goes* by boat*.','Snow* on my toes*.']},
+{id:'b23',sem:2,l:'ie',s:'/ī/',c:['long_i'],p:['ie'],w:'p-ie* t-ie* l-ie* f-l-ie*-s=z c-r-ie*-s=z t-ie*-d f-r-ie*-s=z s-p-ie*-s=z',h:['Pie* and fries*!','The flies* like pie*.']},
+{id:'b24i',sem:2,l:'igh',s:'/ī/',c:['long_i'],p:['igh'],w:'h-igh* l-igh*-t n-igh*-t r-igh*-t s-igh*-t b-r-igh*-t f-igh*-t s-igh* m-igh*-t',h:['The light* is bright* at night*.','That is right*!']},
+{id:'b24',sem:2,l:'y, ie, igh',s:'/ī/',from:['a25','b23','b24i'],c:['long_i'],p:['y','ie','igh'],h:['The light* is bright* at night*.','Why* is the pie* so high*?']},
+{id:'b25',sem:2,l:'ui',s:'/ū/',c:['long_u'],p:['ui'],w:'f-r-ui*-t s-ui*-t j-ui*-c=s-e=0 c-r-ui*-s=z-e=0 b-r-ui*-s=z-e=0',h:['Fruit* juice* is good.','A suit* for a cruise*.']},
+{id:'b26',sem:2,l:'ue',s:'/ū/',c:['long_u'],p:['ue'],w:'b-l-ue* g-l-ue* c-l-ue* t-r-ue* d-ue* S-ue* c-ue*=U a-r-g-ue*=U r-e-s-c-ue*=U',h:['Sue* has blue* glue*.','Is it true*?']},
+{id:'b27',sem:2,l:'ui, ue',s:'/ū/',from:['b25','b26'],c:['long_u'],p:['ui','ue'],h:['Sue* has a blue* suit*.','A clue*: it is a fruit*!']},
+{id:'b28',sem:2,l:'au',s:'/aw/',c:['aw'],p:['au'],w:'h-au*-l P-au*-l f-au*-l-t l-au*-n-ch s-au*-c=s-e=0 p-au*-s=z-e=0',h:['Pause* the launch*!','Paul* likes sauce*.']},
+{id:'b28g',sem:2,l:'augh',s:'/aw/',c:['aw'],p:['augh'],w:'c-augh*-t t-augh*-t d-augh*-t-er n-augh*-t-y=E',h:['Paul caught* the ball.','She taught* her daughter*.']},
+{id:'b29',sem:2,l:'aw',s:'/aw/',c:['aw'],p:['aw'],w:'s-aw* p-aw* j-aw* r-aw* c-l-aw* d-r-aw* s-t-r-aw* l-aw*-n y-aw*-n c-r-aw*-l h-aw*-k',h:['A hawk* has claws*.','Draw* a paw*.']},
+{id:'b30',sem:2,l:'oi',s:'/oi/',c:['oi'],p:['oi'],w:'oi*-l b-oi*-l c-oi*-n j-oi*-n p-oi*-n-t s-oi*-l s-p-oi*-l f-oi*-l m-oi*-s-t n-oi*-s=z-e=0',h:['Boil* the oil*.','Point* at the coin*.']},
+{id:'b31',sem:2,l:'oy',s:'/oi/',c:['oi'],p:['oy'],w:'b-oy* t-oy* j-oy* s-oy* R-oy* e-n-j-oy* a=sw-nn-oy* oy*-s-t-er r-oy*-a=sw-l d-e=E-s-t-r-oy*',h:['The boy* has a toy*.','Roy* and Joy* enjoy* it.']},
+{id:'b32',sem:2,l:'ought',s:'/awt/',c:['aw'],p:['ought'],w:'b-ough*-t* b-r-ough*-t* f-ough*-t* th-ough*-t* s-ough*-t* ough*-t*',h:['I bought* a toy.','We fought*. Then we thought*.']},
+{id:'b33',sem:2,l:'ou',s:'/ow/',c:['ow'],p:['ou'],w:'ou*-t sh-ou*-t c-l-ou*-d h-ou*-s-e=0 m-ou*-th r-ou*-n-d l-ou*-d f-ou*-n-d',h:['Shout* out* loud*!','A cloud* is over the house*.']},
+{id:'b33w',sem:2,l:'ow',s:'/ow/',c:['ow'],p:['ow'],m:{ow:'ow'},w:'c-ow* h-ow* n-ow* t-ow*-n b-r-ow*-n c-r-ow*-n ow*-l d-ow*-n',h:['How* now, brown* cow*?','The owl* flew down*.']},
+{id:'b34',sem:2,l:'ew',s:'/ū/',c:['long_u'],p:['ew'],w:'n-ew*=U f-ew*=U d-ew* ch-ew* g-r-ew* f-l-ew* b-l-ew* s-t-ew* d-r-ew* c-r-ew*',h:['The crew* flew* a new* plane.','Chew* the stew*.']},
+{id:'b35',sem:2,l:'oo',s:'/oo/',c:['oo'],p:['oo'],w:'m-oo*-n f-oo*-d p-oo*-l r-oo*-m s-p-oo*-n b-oo*-t z-oo* t-oo*-th b-r-oo*-m g-oo*-s-e=0',h:['A goose* at the zoo*.','The moon* is in my room*.']},
+{id:'b36',sem:2,l:'oo',s:'/ŏŏ/',c:['book'],p:['oo'],m:{oo:'uu'},w:'b-oo*-k l-oo*-k c-oo*-k f-oo*-t g-oo*-d w-oo*-d h-oo*-k s-t-oo*-d',h:['Look* at the good* book*.','Cook* the food.']},
+{id:'b36u',sem:2,l:'u',s:'/ŏŏ/',c:['book'],p:['u'],m:{u:'uu'},w:'p-u*-t p-u*-sh p-u*-ll b-u*-sh f-u*-ll',h:['Push* and pull*!','The bush* is full*.']},
+];
+
+/* ---------- parsing ---------- */
+function parseWord(code, map){
+  const toks = code.split('-').map(part=>{
+    let star = part.includes('*');
+    let t = part.replace(/\*/g,'');
+    let [g,key] = t.split('=');
+    let split = false;
+    if(g==='e_'){ g='e'; split=true; key='0'; }
+    const gl = g.toLowerCase();
+    if(!key){ key = (star && map && map[gl]) ? map[gl] : (DEF[gl] || gl); }
+    return {g, key, star, split};
+  });
+  return {text: toks.map(t=>t.g).join(''), toks};
+}
+const LESSONS = [];
+const BYID = {};
+RAW.forEach((r,i)=>{
+  const L = Object.assign({}, r, {idx:i});
+  L.words = r.w ? r.w.split(' ').map(c=>parseWord(c, r.m)) : [];
+  if(r.from){
+    const pool = [];
+    r.from.forEach(id=>{ const src = BYID[id]; if(src) src.words.slice(0, r.from.length>3?3:5).forEach(w=>pool.push(w)); });
+    L.words = L.words.concat(pool);
+  }
+  L.hunt = r.h || [];
+  LESSONS.push(L); BYID[L.id] = L;
+});
+const SEMS = ['Kindergarten · 2nd semester','1st grade · 1st semester','1st grade · 2nd semester'];
+const STEPS = [
+  {k:'meet', n:'Meet the card', kid:'Meet it', min:10},
+  {k:'read', n:'Read it', kid:'Read it', min:5},
+  {k:'write', n:'Write it', kid:'Write it', min:10},
+  {k:'spell', n:'Spell it', kid:'Spell it', min:10},
+  {k:'hunt', n:'Word hunt', kid:'Word hunt', min:0}
+];
+const GUIDE = {
+  meet:`<b>Introduce and model.</b> Show the sound card and its picture. Model the chant: the picture word twice, the sound three times, then the spelling(s), e.g. <i>"Apple, apple, /ă/ /ă/ /ă/, short a."</i> Add the movement. <b>Chant together</b> several times so your child connects the sound and the spelling.`,
+  read:`<b>Parent reading.</b> Read the words that contain the new pattern. Stress the pattern's sound while your child highlights, underlines, or circles it. Sound each word out part by part, e.g. <i>/h/-/ea/-/d/</i>, then read it smoothly.`,
+  write:`<b>Demonstrate</b> the uppercase and lowercase letters and/or the pattern on a whiteboard or paper. <b>Practice</b> in different ways: on paper, in the air, on someone's back with a finger, or in sand.`,
+  spell:`<b>Dictation.</b> Keep the sound card in view. Say each sound slowly; your child writes the letters for each sound to build the word. When a sound has more than one spelling, give its <b>number on the sound card</b>, e.g. <i>"bread: /b/ /r/ /ĕ/ spelling #2 /d/."</i>`,
+  hunt:`<b>Word hunt.</b> Use your printed Spelling Pattern Word Hunt worksheet or a grade-level book from your home library. Hunt for words with today's pattern and count them. Some sentences include common "heart words" (the, a, is, I, to) that are not fully decodable yet.`
+};
+
+/* ============================================================
+   4. STORAGE (per device, optional)
+   ============================================================ */
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const prog = store.get('pss.progress', {done:{}, last:0, tally:{}, found:{}});
+const prefs = store.get('pss.prefs', {voice:'', rate:0.85});
+const saveProg = ()=>store.set('pss.progress', prog);
+const savePrefs = ()=>store.set('pss.prefs', prefs);
+const stepsDone = id => prog.done[id] || [];
+function markStep(id, k){ const d = new Set(stepsDone(id)); if(!d.has(k)){ d.add(k); prog.done[id] = [...d]; saveProg(); } }
+function reached(){ let max = prog.last || 0; LESSONS.forEach((L,i)=>{ if(stepsDone(L.id).length) max = Math.max(max,i); }); return max; }
+function nextLesson(){ const i = LESSONS.findIndex(L=>stepsDone(L.id).length < STEPS.length); return i<0 ? LESSONS.length-1 : Math.max(i, 0); }
+
+/* ============================================================
+   5. VOICE (Web Speech API)
+   ============================================================ */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const Speech = {
+  ok: typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined',
+  voices:[], voice:null, run:0,
+  init(){
+    if(!this.ok) return;
+    const pick = ()=>{
+      try{
+        this.voices = speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang) || v.lang==='en');
+        this.voice = this.voices.find(v=>v.name===prefs.voice)
+          || this.voices.find(v=>/en[-_]US/i.test(v.lang) && /(Google|Samantha|Aria|Jenny|Natural|Ava)/i.test(v.name))
+          || this.voices.find(v=>/en[-_]US/i.test(v.lang)) || this.voices[0] || null;
+        if(state.view==='settings') render();
+      }catch(e){}
+    };
+    pick();
+    try{ speechSynthesis.addEventListener('voiceschanged', pick); }catch(e){ speechSynthesis.onvoiceschanged = pick; }
+  },
+  stop(){ this.run++; if(this.current){ try{ this.current.pause(); }catch(e){} } if(this.ok){ try{ speechSynthesis.cancel(); }catch(e){} } },
+  clipCache:{},
+  playClip(key){
+    return new Promise(res=>{
+      let a = this.clipCache[key];
+      if(!a){ a = new Audio('audio/'+CLIPS[key]+'.mp3'); a.preload='auto'; this.clipCache[key]=a; }
+      let done=false; const fin=()=>{ if(!done){ done=true; clearTimeout(t); a.onended=a.onerror=null; res(); } };
+      const t = setTimeout(fin, 2500);
+      this.current = a;
+      try{ a.pause(); a.currentTime = 0; }catch(e){}
+      a.onended = fin; a.onerror = fin;
+      const pr = a.play(); if(pr && pr.catch) pr.catch(fin);
+    });
+  },
+  say(text, rate=1){
+    if(typeof text==='string' && text[0]==='@' && CLIPS[text.slice(1)]) return this.playClip(text.slice(1));
+    return new Promise(res=>{
+      if(!this.ok || !text){ setTimeout(res, text ? 500 : 250); return; }
+      let done=false; const fin=()=>{ if(!done){ done=true; clearTimeout(t); res(); } };
+      const u = new SpeechSynthesisUtterance(text);
+      if(this.voice) u.voice = this.voice;
+      u.lang = (this.voice && this.voice.lang) || 'en-US';
+      u.rate = Math.max(.4, Math.min(1.6, rate * (prefs.rate || .85)));
+      u.onend = fin; u.onerror = fin;
+      const t = setTimeout(fin, 1500 + text.length*140/u.rate);
+      try{ speechSynthesis.speak(u); }catch(e){ fin(); }
+    });
+  },
+  /* parts: [{text, rate, gap, i}] — onStep(i) lights up the matching chip */
+  async seq(parts, onStep){
+    this.stop(); const my = this.run; await sleep(60);
+    for(const p of parts){
+      if(my!==this.run) return false;
+      onStep && onStep(p.i);
+      await this.say(p.text, p.rate||1);
+      if(my!==this.run) return false;
+      await sleep(p.gap ?? 220);
+    }
+    onStep && onStep(-1);
+    return my===this.run;
+  }
+};
+/* Dana's own recordings. When a sound has a clip, the app plays her voice instead of the computer voice. */
+const CLIPS = {a:'short_a',e:'short_e',i:'short_i',o:'short_o',u:'short_u',
+  A:'long_a',E:'long_e',I:'long_i',O:'long_o',U:'long_u',
+  b:'b',k:'k',d:'d',f:'f',g:'g',h:'h',j:'j',l:'l',m:'m',n:'n',p:'p',kw:'kw',r:'r',s:'s',t:'t',sh:'sh',th:'th',ch:'ch',oo:'oo',aw:'aw',ow:'ow'};
+/* Dana's recorded card chants: name = how she ends the chant; t = start second of each part
+   (picture word, picture word, sound, sound, sound, ending) inside audio/chant_<card>.mp3 */
+const CHANT_REC = {"short_a":{"name":"short a","t":[0.12,0.98,1.91,2.37,2.85,3.7]},"b":{"name":"b","t":[0.12,0.95,1.84,2.29,2.75,3.7]},"c":{"name":"c","t":[0.12,0.99,1.9,2.33,2.76,3.6]},"d":{"name":"d","t":[0.12,1.0,1.93,2.38,2.87,3.86]},"short_e":{"name":"short e","t":[0.12,1.08,2.03,2.53,3.01,3.78]},"f":{"name":"f","t":[0.12,1.13,2.15,2.58,3.07,4.1]},"g":{"name":"g","t":[0.12,1.08,2.06,2.51,2.98,3.83]},"h":{"name":"h","t":[0.12,1.09,2.06,2.51,2.98,3.96]},"short_i":{"name":"short i","t":[0.12,0.98,1.9,2.35,2.82,3.61]},"j":{"name":"j","t":[0.12,1.13,2.18,2.67,3.12,4.1]},"k":{"name":"k","t":[0.12,1.11,2.13,2.59,3.07,4.06]},"l":{"name":"l","t":[0.12,1.03,2.06,2.55,3.04,4.05]},"m":{"name":"m","t":[0.12,0.85,2.16,2.63,3.1,4.01]},"n":{"name":"n","t":[0.12,1.05,2.12,2.53,2.95,3.84]},"short_o":{"name":"short o","t":[0.12,1.1,2.12,2.69,3.25,4.1]},"p":{"name":"p","t":[0.12,1.03,2.05,2.55,3.07,3.94]},"qu":{"name":"qu","t":[0.12,1.08,2.01,2.51,2.96,4.05]},"r":{"name":"r","t":[0.12,0.99,2.02,2.5,2.98,4.01]},"s":{"name":"s","t":[0.12,1.14,2.32,2.74,3.21,4.23]},"t":{"name":"t","t":[0.12,1.0,2.02,2.48,2.99,3.96]},"short_u":{"name":"short u","t":[0.12,1.1,2.29,2.76,3.27,4.08]},"sh":{"name":"sh","t":[0.12,1.08,2.13,2.61,3.07,4.03]},"th":{"name":"th","t":[0.12,1.15,2.04,2.47,2.94,3.94]},"ch":{"name":"ch","t":[0.12,1.05,2.06,2.56,3.09,4.14]},"oo":{"name":"oo","t":[0.12,1.08,2.09,2.58,3.08,4.09]},"aw":{"name":"aw","t":[0.12,1.06,1.98,3.02,4.54],"order":"sssw"},"ow":{"name":"ow","t":[0.12,1.11,2.06,3.28,3.78],"order":"sssw"}};
+const useClip = key => !!CLIPS[key] && prefs.clips !== false;
+const sayOf = key => useClip(key) ? '@'+key : (SND[key]||['',''])[1];
+const showOf = key => (SND[key]||[key,''])[0];
+
+/* ============================================================
+   6. HELPERS
+   ============================================================ */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cap = s=>s.charAt(0).toUpperCase()+s.slice(1);
+const shuffle = a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),2200); }
+function wordHTML(w){ return `<span class="word">${w.toks.map(t=>`<span class="g${t.star?' t':''}${t.key==='0'?' silent':''}">${esc(t.g)}</span>`).join('')}</span>`; }
+/* spoken letter names for a spelling: "a_e" -> "A, consonant, E" */
+function spellSay(sp){
+  sp = cleanSp(sp).replace(/…/g,'');
+  if(/^[a-z]_[a-z]$/.test(sp)) return `${sp[0].toUpperCase()}, consonant, ${sp[2].toUpperCase()}`;
+  return sp.replace(/_/g,'').split('').map(ch=>ch.toUpperCase()).join('. ')+'.';
+}
+function cardSpellingsFor(L, cid){
+  const card = CARDS[cid]; const set = card.sp.map(cleanSp);
+  const focus = (L ? L.p : []).filter(p=>set.includes(p) || set.includes(p.replace(/^_/,'')));
+  return focus;
+}
+function chantParts(cid, L){
+  const c = CARDS[cid];
+  const key = c.key; const s = c.snd;
+  let endShow, endSay;
+  const fc = L ? cardSpellingsFor(L,cid) : []; const first = cleanSp(c.sp[0]);
+  const rec = CHANT_REC[cid];
+  if(rec && prefs.clips !== false && (!fc.length || (fc.length===1 && fc[0]===first))){
+    const snd3 = [{show:showOf(s), snd:1}, {show:showOf(s), snd:1}, {show:showOf(s), snd:1}];
+    const list = rec.order==='sssw'   /* recorded as: sound x3, picture word, letter names */
+      ? snd3.concat([{show:key}, {show:rec.name}])
+      : [{show:cap(key)}, {show:key}].concat(snd3, [{show:rec.name}]);
+    return list.map(x=>Object.assign(x,{rec:cid}));
+  }
+  if(c.nm && (!fc.length || (fc.length===1 && fc[0]===first))){ endShow = c.nm; endSay = c.nm.replace(/ ([a-z])$/,(m,x)=>' '+x.toUpperCase()); }
+  else {
+    const focus = L ? cardSpellingsFor(L,cid) : [];
+    const list = focus.length ? focus : c.sp.filter(x=>!x.startsWith('+')).map(cleanSp);
+    endShow = list.join(', '); endSay = list.map(spellSay).join(' ');
+  }
+  return [
+    {show:cap(key), say:cap(key)}, {show:key, say:key},
+    {show:showOf(s), say:sayOf(s), snd:1}, {show:showOf(s), say:sayOf(s), snd:1}, {show:showOf(s), say:sayOf(s), snd:1},
+    {show:endShow, say:endSay}
+  ];
+}
+/* Plays one chant: Dana's recording when there is one, otherwise the computer voice.
+   onStep(i) lights up chip i; resolves true if it finished without being stopped. */
+function runChant(parts, onStep){
+  if(parts[0] && parts[0].rec){
+    const rec = CHANT_REC[parts[0].rec];
+    Speech.stop(); const my = Speech.run;
+    return new Promise(res=>{
+      const a = new Audio('audio/chant_'+parts[0].rec+'.mp3'); Speech.current = a;
+      let raf=0, done=false;
+      const tick=()=>{ if(done) return; const t=a.currentTime; let i=-1; rec.t.forEach((st,j)=>{ if(t>=st-0.02) i=j; }); onStep && onStep(i); raf=requestAnimationFrame(tick); };
+      const fin=ok=>{ if(done) return; done=true; cancelAnimationFrame(raf); onStep && onStep(-1); res(ok && my===Speech.run); };
+      a.onended=()=>fin(true); a.onerror=()=>fin(false); a.onpause=()=>{ if(!a.ended) fin(false); };
+      const pr=a.play(); if(pr && pr.catch) pr.catch(()=>fin(false));
+      raf=requestAnimationFrame(tick);
+    });
+  }
+  return Speech.seq(parts.map((p,i)=>({text:p.say, rate:p.snd?.75:.9, gap:p.snd?200:260, i})), onStep);
+}
+function cardHTML(cid, opts={}){
+  const c = CARDS[cid]; if(!c) return '';
+  const cover = opts.cover ? `<div class="cover" data-cover style="top:${((c.cv||.5)*100).toFixed(1)}%"><span>Slide down to peek</span></div>` : '';
+  if(c.made){
+    const hi = c.kwHi || null;
+    const firstSp = cleanSp(c.sp[0]);
+    let kw = esc(c.key);
+    if(!hi){ const ix = c.key.indexOf(firstSp); if(ix>=0) kw = esc(c.key.slice(0,ix))+'<em>'+esc(firstSp)+'</em>'+esc(c.key.slice(ix+firstSp.length)); }
+    else kw = c.key.split('').map((ch,i)=>hi.includes(i)?`<em>${ch}</em>`:ch).join('');
+    const sp = c.sp.length>1 ? c.sp.map((x,i)=>`<span>${i+1}. ${esc(cleanSp(x))}</span>`).join('') : `<span>${esc(cleanSp(c.sp[0]))}</span>`;
+    return `<div class="scard made" role="img" aria-label="${esc(c.key)} sound card (made in the app)"><span class="madetag">app card</span><div class="pic" aria-hidden="true">${c.made}</div><div class="cbox tone-${c.tone}"><div class="kw">${kw}</div><div class="sp">${sp}</div></div>${opts.cover?`<div class="cover" data-cover style="top:52%"><span>Slide down to peek</span></div>`:''}</div>`;
+  }
+  return `<div class="scard"><img src="cards/${cid}.webp" alt="${esc(c.key)} sound card" loading="lazy" draggable="false">${cover}</div>`;
+}
+/* which spelling (and its number on the card) a starred token uses */
+function spellingFor(tok, w, L){
+  if(!tok.star || tok.split) return null;
+  const i = w.toks.indexOf(tok); const next = w.toks[i+1];
+  let sp = tok.g.toLowerCase();
+  const hasSplit = w.toks.some(t=>t.split && t.star);
+  if(hasSplit && /^[aeiou]$/.test(sp)) sp = sp+'_e';
+  else if(sp==='c' && tok.key==='s') sp = next && /^i/i.test(next.g) ? 'ci' : 'ce';
+  else if(sp==='g' && tok.key==='j') sp = next && /^i/i.test(next.g) ? 'gi' : 'ge';
+  const cards = (L.c||[]).concat(CARD_ORDER);
+  for(const cid of cards){
+    const list = CARDS[cid].sp.map(cleanSp);
+    const n = list.indexOf(sp);
+    if(n>=0) return {cid, num:n+1, total:list.length, sp};
+  }
+  return null;
+}
+
+/* ============================================================
+   7. STATE + ROUTER
+   ============================================================ */
+const state = {view:'home', li:nextLesson(), step:0, card:0, wi:0, hide:false,
+  write:{surface:'paper', color:'#1b2333', pat:0, count:0}, spell:{wi:0, mode:'tiles'}, review:null, wallAll:false};
+let cleanup = [];
+function go(view, extra={}){ Speech.stop(); Object.assign(state, {view}, extra); render(); window.scrollTo({top:0}); }
+function render(){
+  cleanup.forEach(f=>{ try{ f(); }catch(e){} }); cleanup = [];
+  $$('.nav button').forEach(b=>b.setAttribute('aria-current', b.dataset.view===state.view || (state.view==='lesson' && b.dataset.view==='home') ? 'page' : 'false'));
+  const m = $('#main');
+  const banner = Speech.ok ? '' : `<p class="banner">This browser can't speak out loud, so the sound buttons will stay quiet. Everything else works. ${KID ? 'Ask a grown-up to say the sounds and words with you.' : 'Say the sounds and words for your child as you go.'}</p>`;
+  if(state.view==='home') m.innerHTML = banner + (KID ? kidHomeView() : homeView());
+  else if(state.view==='lesson') m.innerHTML = banner + lessonView();
+  else if(state.view==='wall') m.innerHTML = banner + wallView();
+  else if(state.view==='review') m.innerHTML = banner + reviewView();
+  else if(state.view==='settings') m.innerHTML = banner + settingsView();
+  after();
+}
+function after(){
+  if(state.view==='lesson'){
+    const k = STEPS[state.step].k;
+    if(k==='read') bindSlide();
+    if(k==='write') setupCanvas();
+    if(k==='spell') bindDrag();
+    bindTimer();
+  }
+  if(state.view==='review') bindCover();
+}
+
+/* ---------- HOME ---------- */
+function homeView(){
+  const ni = nextLesson(); const L = LESSONS[ni];
+  const cid = L.c[0];
+  const doneCount = LESSONS.filter(x=>stepsDone(x.id).length>=STEPS.length).length;
+  const cols = [0,1,2].map(s=>{
+    const items = LESSONS.filter(x=>x.sem===s).map(x=>{
+      const d = stepsDone(x.id);
+      return `<li><button class="les${x.idx===ni?' current':''}" data-act="open" data-i="${x.idx}">
+        <span class="n">${x.idx+1}</span>
+        <span class="t">${esc(x.l)}<small>${esc(x.s)}${x.day?' · day '+x.day:''}</small></span>
+        <span class="dots" aria-label="${d.length} of 5 steps done">${STEPS.map(st=>`<i class="${d.includes(st.k)?'on':''}"></i>`).join('')}</span>
+      </button></li>`; }).join('');
+    return `<section class="sem${s?' g1':''}"><h3>${SEMS[s]}</h3><ol>${items}</ol></section>`;
+  }).join('');
+  return `
+  <div class="hero">
+    <section class="panel continue">
+      <div style="width:130px">${cardHTML(cid)}</div>
+      <div>
+        <p class="eyebrow">Lesson ${ni+1} of ${LESSONS.length} · ${SEMS[L.sem]}</p>
+        <div class="pat">${esc(L.l)} <span class="muted" style="font-size:24px">${esc(L.s)}</span></div>
+        <p class="muted" style="margin:6px 0 14px">${doneCount ? `${doneCount} lesson${doneCount>1?'s':''} finished so far.` : 'Pick up where the sequence starts, or choose any lesson below.'}</p>
+        <button class="btn primary" data-act="open" data-i="${ni}">Start today's lesson</button>
+      </div>
+    </section>
+    <section class="panel">
+      <p class="eyebrow" style="margin-bottom:8px">Every lesson follows your plan</p>
+      <div class="steps-key">
+        ${STEPS.map((s,i)=>`<div><b>${i+1}</b><span><strong>${s.n}</strong> ${s.min?`· ${s.min} min`:'· as time allows'} — ${['see it, hear it, chant it, move it','tap, sound out, and slide to blend','trace on paper, whiteboard, or sand','listen and build words with tiles','find the pattern in sentences and books'][i]}</span></div>`).join('')}
+      </div>
+    </section>
+  </div>
+  <div class="seq">${cols}</div>`;
+}
+
+/* ---------- KID HOME: one path of stops, no grade levels ---------- */
+function kidHomeView(){
+  const ni = nextLesson(); const L = LESSONS[ni];
+  const total = LESSONS.length*STEPS.length;
+  const stars = LESSONS.reduce((n,x)=>n+stepsDone(x.id).length,0);
+  const pct = Math.round(stars/total*100);
+  const stops = LESSONS.map(x=>{
+    const d = stepsDone(x.id).length;
+    const cls = d>=STEPS.length ? ' done' : d ? ' part' : '';
+    return `<button class="stop${cls}${x.idx===ni?' here':''}" data-act="open" data-i="${x.idx}" aria-label="Stop ${x.idx+1}: ${esc(x.l)}${d>=STEPS.length?', finished':''}">
+      ${d>=STEPS.length?'<span class="st" aria-hidden="true">⭐</span>':''}
+      <span class="n">${x.idx+1}</span><span class="p">${esc(x.l)}</span></button>`;
+  }).join('');
+  return `
+  <section class="next">
+    <div>${cardHTML(L.c[0])}</div>
+    <div>
+      <h2>${stars ? 'Next stop' : 'Ready? Your first stop'}</h2>
+      <div><span class="big">${esc(L.l)}</span><span class="snd">${esc(L.s)}</span></div>
+      <button class="btn primary go" data-act="open" data-i="${ni}">Let's go! ›</button>
+    </div>
+  </section>
+  <div class="starbar"><span>⭐ ${stars} star${stars===1?'':'s'}</span><span class="meter" aria-hidden="true"><i style="width:${pct}%"></i></span></div>
+  <h3 style="margin-top:24px;font-size:22px">My Sound Path</h3>
+  <p class="muted" style="margin:4px 0 0">Tap any stop. Each step you finish earns a star.</p>
+  <div class="path">${stops}</div>
+  <div class="grownups"><button data-act="settings">For grown-ups: voice &amp; settings</button>${OTHER_APP ? ` · <a href="${OTHER_APP}" style="color:var(--muted);font-size:14px">Parent &amp; teacher version</a>` : ''}</div>`;
+}
+
+/* ---------- LESSON SHELL ---------- */
+function lessonView(){
+  const L = LESSONS[state.li]; const d = stepsDone(L.id); const st = STEPS[state.step];
+  const body = {meet:meetView, read:readView, write:writeView, spell:spellView, hunt:huntView}[st.k](L);
+  return `
+  <div class="lhead">
+    <div>
+      <button class="back" data-act="home">‹ ${KID ? 'My path' : 'All lessons'}</button>
+      <p class="eyebrow" style="margin-top:6px">${KID ? `Stop ${L.idx+1}${L.day?' · part '+L.day:''}` : `Lesson ${L.idx+1} · ${SEMS[L.sem]}${L.day?' · Day '+L.day:''}`}</p>
+      <h1>${esc(L.l)} <span class="snd">${esc(L.s)}</span></h1>
+    </div>
+    <div class="lnav">
+      <button class="btn small ghost" data-act="lesson-step" data-d="-1" ${L.idx===0?'disabled':''} aria-label="Previous lesson">‹ Prev</button>
+      <button class="btn small ghost" data-act="lesson-step" data-d="1" ${L.idx===LESSONS.length-1?'disabled':''} aria-label="Next lesson">Next ›</button>
+    </div>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Lesson steps">
+    ${STEPS.map((s,i)=>`<button class="tab${d.includes(s.k)?' done':''}" role="tab" aria-selected="${i===state.step}" data-act="step" data-s="${i}"><b>${d.includes(s.k)?(KID?'⭐':'✓'):i+1}</b>${KID ? s.kid : s.n}${!KID && s.min?` <small>${s.min} min</small>`:''}</button>`).join('')}
+  </div>
+  <div class="stage">
+    ${KID ? '' : `<details class="guide"${state.step===0 && !d.length?' open':''}>
+      <summary>Parent guide for this step
+        <span class="timer" data-timer="${st.min*60}"><span>${st.min?st.min+':00':'—'}</span>${st.min?`<button class="btn small ghost" data-act="timer" type="button">Start timer</button>`:''}</span>
+      </summary>
+      <div class="body">${GUIDE[st.k]}</div>
+    </details>`}
+    ${body}
+    <div class="stepfoot">
+      <button class="btn ghost" data-act="step" data-s="${state.step-1}" ${state.step===0?'disabled':''}>‹ Back</button>
+      <button class="btn primary" data-act="finish-step">${state.step===STEPS.length-1 ? (KID?'I finished! ⭐':'Finish lesson ✓') : (KID?'I did it! Next ›':'Done — next step ›')}</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- 1. MEET ---------- */
+function meetView(L){
+  const cid = L.c[Math.min(state.card, L.c.length-1)]; const c = CARDS[cid];
+  const parts = chantParts(cid, L);
+  const focus = cardSpellingsFor(L, cid);
+  const tabs = L.c.length>1 ? `<div class="cardtabs" role="group" aria-label="Sound cards in this lesson">${L.c.map((id,i)=>`<button aria-pressed="${id===cid}" data-act="card" data-c="${i}">${esc(CARDS[id].nm || cleanSp(CARDS[id].sp[0]))}</button>`).join('')}</div>` : '';
+  const sp = c.sp.map((x,i)=>{ const s=cleanSp(x); return `<span class="${focus.includes(s)?'focus':''}${x.startsWith('+')?' added':''}" title="${x.startsWith('+')?'Added in the app, not printed on the card':''}">${c.sp.length>1?`<sup>#${i+1}</sup>`:''}${esc(s)}</span>`; }).join('');
+  const hasAdded = c.sp.some(x=>x.startsWith('+'));
+  return `
+  <section class="panel meet">
+    <div class="cardcol">${tabs}${cardHTML(cid)}
+      <div class="spells" aria-label="Spellings on this card">${sp}</div>
+      ${hasAdded?`<p class="muted" style="font-size:13px;margin:6px 0 0">Dashed spellings are extras the app adds; they are not printed on your card.</p>`:''}
+    </div>
+    <div>
+      <p class="eyebrow">Look · Listen · Say it with me</p>
+      <div class="chant" id="chant">${parts.map((p,i)=>`<span class="chip${p.snd?' snd':''}" data-i="${i}">${esc(p.show)}</span>`).join('')}</div>
+      <div class="row">
+        <button class="btn sky" data-act="chant">▶ Hear the chant</button>
+        <button class="btn sun" data-act="chant3">Chant together ×3</button>
+        <button class="btn ghost" data-act="sound" data-k="${c.snd}">Just the sound ${esc(showOf(c.snd))}</button>
+      </div>
+      <div class="row" style="margin-top:12px;gap:14px">
+        <span class="muted">Chants done:</span>
+        <span class="stars" id="stars" aria-live="polite">${[0,1,2].map(i=>`<i class="${(state.chants||0)>i?'on':''}">★</i>`).join('')}</span>
+        <button class="btn small ghost" data-act="star">+ We chanted it</button>
+      </div>
+      <div class="move" style="margin-top:18px">
+        <span class="ico" aria-hidden="true">${c.ico}</span>
+        <div><strong>Add the move</strong><p>${esc(c.move)} Do it every time you say ${esc(showOf(c.snd))}.</p></div>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ---------- 2. READ ---------- */
+function readView(L){
+  const w = L.words[Math.min(state.wi, L.words.length-1)];
+  const readSet = new Set((prog.found[L.id+':read']||[]));
+  if(!w) return `<section class="panel"><p>No words for this lesson.</p></section>`;
+  return `
+  <section class="panel ${state.hide?'hidecolors':''}">
+    <div class="row" style="justify-content:space-between">
+      <p class="eyebrow">Tap a word. Tap each part to hear it. Slide to blend.</p>
+      <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="hidecolors" data-act="hide" ${state.hide?'checked':''}> Hide the red (challenge)</label>
+    </div>
+    <div class="wstage" style="margin:12px 0 20px">
+      <div class="tiles" id="tiles">${w.toks.map((t,i)=>`<button class="tile${t.star?' t':''}${t.key==='0'?' silent':''}" data-act="tok" data-t="${i}" aria-label="${esc(t.g)}, ${esc(showOf(t.key))}">${esc(t.g)}${t.key==='0'?'<small>silent</small>':''}</button>`).join('')}</div>
+      <div class="slide" id="slide" aria-label="Blending slide: drag the ball to the right"><span class="lab">Slide your finger under the word →</span><span class="knob" aria-hidden="true">👉</span></div>
+      <div class="row" style="justify-content:center">
+        <button class="btn sky" data-act="soundout">Sound it out</button>
+        <button class="btn sun" data-act="readword">Read the word</button>
+        <button class="btn primary" data-act="nextword">Next word ›</button>
+      </div>
+      <p class="muted" style="margin:0">Find it! Tap the letters that make <b>${esc(L.s)}</b> to circle them.</p>
+    </div>
+    <div class="wgrid">${L.words.map((x,i)=>`<button class="wbtn" aria-pressed="${i===state.wi}" data-act="pickword" data-w="${i}">${wordHTML(x)}${readSet.has(i)?'<span class="ok">✓</span>':''}</button>`).join('')}</div>
+    <p class="muted" style="margin:10px 0 0">${readSet.size} of ${L.words.length} words read</p>
+  </section>`;
+}
+function soundOut(L, w){
+  const tiles = $$('#tiles .tile');
+  const parts = [];
+  w.toks.forEach((t,i)=>{ if(t.key!=='0') parts.push({text:sayOf(t.key), rate:.75, gap:260, i}); else parts.push({text:'', gap:200, i}); });
+  parts.push({text:w.text, rate:.8, gap:100, i:'all'});
+  Speech.seq(parts, i=>{
+    tiles.forEach((el,j)=>el.classList.toggle('on', i==='all' || j===i));
+    if(i===-1) setTimeout(()=>tiles.forEach(el=>el.classList.remove('on')), 500);
+  }).then(ok=>{ if(ok) markWordRead(L); });
+}
+function markWordRead(L){
+  const key = L.id+':read'; const s = new Set(prog.found[key]||[]); s.add(state.wi); prog.found[key] = [...s]; saveProg();
+  const btn = $(`.wbtn[data-w="${state.wi}"]`); if(btn && !btn.querySelector('.ok')) btn.insertAdjacentHTML('beforeend','<span class="ok">✓</span>');
+  if(s.size>=L.words.length) markStep(L.id,'read');
+}
+function bindSlide(){
+  const slide = $('#slide'); if(!slide) return;
+  const knob = slide.querySelector('.knob'); const L = LESSONS[state.li]; const w = L.words[state.wi];
+  const tiles = $$('#tiles .tile'); let active=false, last=-1;
+  const move = e=>{
+    if(!active) return;
+    const r = slide.getBoundingClientRect(); const kw = knob.offsetWidth;
+    let x = Math.max(0, Math.min(r.width-kw, e.clientX - r.left - kw/2));
+    knob.style.left = x+'px';
+    const frac = x/(r.width-kw);
+    const idx = Math.min(w.toks.length-1, Math.floor(frac*w.toks.length*0.999));
+    if(frac>0.97){
+      if(last!=='end'){ last='end'; tiles.forEach(t=>t.classList.add('on')); Speech.stop(); Speech.say(w.text,.8).then(()=>tiles.forEach(t=>t.classList.remove('on'))); markWordRead(L); }
+    } else if(idx!==last){
+      last = idx; tiles.forEach((t,j)=>t.classList.toggle('on', j===idx));
+      const tok = w.toks[idx]; if(tok.key!=='0'){ Speech.stop(); Speech.say(sayOf(tok.key), .8); }
+    }
+  };
+  const up = ()=>{ if(!active) return; active=false; knob.style.transition='left .3s'; knob.style.left='0px'; setTimeout(()=>knob.style.transition='',320); if(last!=='end') tiles.forEach(t=>t.classList.remove('on')); last=-1; };
+  slide.addEventListener('pointerdown', e=>{ active=true; last=-1; try{ slide.setPointerCapture(e.pointerId); }catch(_){} move(e); });
+  slide.addEventListener('pointermove', move);
+  slide.addEventListener('pointerup', up); slide.addEventListener('pointercancel', up);
+}
+
+/* ---------- 3. WRITE ---------- */
+function writeView(L){
+  const pats = L.p; const p = pats[Math.min(state.write.pat, pats.length-1)];
+  const shown = p.length===1 ? `${p.toUpperCase()} ${p}` : p.replace('_',' _ ');
+  const backPick = L.p[Math.floor(Math.random()*L.p.length)];
+  return `
+  <section class="panel">
+    <div class="wtools">
+      ${pats.length>1?`<div class="seg" role="group" aria-label="Pattern to trace">${pats.map((x,i)=>`<button aria-pressed="${i===state.write.pat}" data-act="wpat" data-p="${i}" class="read" style="font-weight:700">${esc(x)}</button>`).join('')}</div>`:''}
+      <div class="seg" role="group" aria-label="Writing surface">
+        ${[['paper','Paper'],['board','Whiteboard'],['sand','Sand tray']].map(([k,n])=>`<button aria-pressed="${state.write.surface===k}" data-act="surface" data-v="${k}">${n}</button>`).join('')}
+      </div>
+      ${state.write.surface!=='sand'?['#1b2333','#1d6aa8','#df2a2a','#2c8a3e'].map(col=>`<button class="swatch" style="background:${col}" aria-label="Pen color" aria-pressed="${state.write.color===col}" data-act="color" data-v="${col}"></button>`).join(''):''}
+      <span style="margin-left:auto" class="row">
+        <button class="btn small sky" data-act="wsay">▶ Hear it</button>
+        <button class="btn small ghost" data-act="wclear">Clear</button>
+      </span>
+    </div>
+    <div class="canvaswrap" style="margin-top:12px"><canvas id="pad" aria-label="Tracing pad: trace ${esc(shown)} with your finger"></canvas></div>
+    <div class="row" style="margin-top:12px;justify-content:space-between">
+      <span class="row"><span class="muted">Traced:</span><span class="stars">${[0,1,2].map(i=>`<i class="${state.write.count>i?'on':''}">★</i>`).join('')}</span></span>
+      <button class="btn mint" data-act="traced">I traced it! ✓</button>
+    </div>
+  </section>
+  <div class="twocol">
+    <section class="panel">
+      <p class="eyebrow">Sky writing</p>
+      <div class="bigpat">${esc(shown)}</div>
+      <p class="read" style="font-size:18px">Stand up. Stretch your writing arm out straight. Write <b>${esc(p)}</b> as big as you can in the air while you say <b>${esc(L.s)}</b>.</p>
+    </section>
+    <section class="panel">
+      <p class="eyebrow">Back writing game</p>
+      <p style="margin-top:4px">${KID ? 'Grown-up: press and hold to peek, then write it on my back with one finger. I say the sound and name the s' : 'Parent: press and hold the card to peek, then write it on your child\'s back with one finger. Your child says the sound and names the s'}pelling.</p>
+      <button class="btn sun peek" data-peek="${esc(backPick)}" style="width:100%;margin:6px 0">Press and hold to peek</button>
+      <button class="btn small ghost" data-act="reveal-back" data-v="${esc(backPick)}">Reveal the answer</button>
+      <p id="backans" class="read" style="font-size:32px;font-weight:700;margin:8px 0 0" aria-live="polite"></p>
+    </section>
+  </div>`;
+}
+let pad = null;
+function setupCanvas(){
+  const cv = $('#pad'); if(!cv) return;
+  const L = LESSONS[state.li]; const p = L.p[Math.min(state.write.pat, L.p.length-1)];
+  const text = p.length===1 ? `${p.toUpperCase()}${p}` : p.replace('_',' ');
+  const ctx = cv.getContext('2d');
+  const strokes = []; let cur = null; let sandTex = null;
+  const size = ()=>{
+    const w = cv.parentElement.clientWidth; const h = Math.round(Math.min(340, Math.max(220, w*0.45)));
+    const dpr = window.devicePixelRatio||1;
+    cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); cv.style.height = h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0); sandTex = null; draw();
+  };
+  const W = ()=>cv.width/(window.devicePixelRatio||1), H = ()=>cv.height/(window.devicePixelRatio||1);
+  function makeSand(){
+    const c = document.createElement('canvas'); c.width = Math.ceil(W()); c.height = Math.ceil(H());
+    const x = c.getContext('2d'); x.fillStyle = '#e9cf98'; x.fillRect(0,0,c.width,c.height);
+    for(let i=0;i<c.width*c.height/22;i++){ x.fillStyle = Math.random()<.5?'rgba(160,120,60,.22)':'rgba(255,248,225,.5)'; x.fillRect(Math.random()*c.width, Math.random()*c.height, 1.4, 1.4); }
+    return c;
+  }
+  function draw(){
+    const w = W(), h = H(); const s = state.write.surface;
+    ctx.clearRect(0,0,w,h);
+    if(s==='sand'){ sandTex = sandTex || makeSand(); ctx.drawImage(sandTex,0,0); }
+    else { ctx.fillStyle = s==='board' ? '#fbfdff' : '#ffffff'; ctx.fillRect(0,0,w,h); }
+    const top = h*0.16, mid = h*0.44, base = h*0.72, desc = h*0.92;
+    if(s==='paper'){
+      ctx.lineWidth = 2; ctx.strokeStyle = '#9fb7d6'; ctx.setLineDash([]);
+      [top, base].forEach(y=>{ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); });
+      ctx.setLineDash([10,8]); ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(w,mid); ctx.stroke();
+      ctx.setLineDash([]); ctx.strokeStyle='#f0b3b3'; ctx.beginPath(); ctx.moveTo(0,desc); ctx.lineTo(w,desc); ctx.stroke();
+    }
+    // guide letters: cap height spans top->base
+    const fs = (base-top)/0.72;
+    ctx.font = `700 ${fs}px Andika, "Comic Sans MS", sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    let tw = ctx.measureText(text).width; let f2 = fs;
+    if(tw > w*0.9){ f2 = fs*(w*0.9)/tw; ctx.font = `700 ${f2}px Andika, "Comic Sans MS", sans-serif`; }
+    const spaced = text.split('').join(String.fromCharCode(8202));
+    ctx.fillStyle = s==='sand' ? 'rgba(120,85,30,.22)' : 'rgba(27,35,51,.10)';
+    ctx.fillText(spaced, w/2, base);
+    ctx.setLineDash([6,7]); ctx.lineWidth = 2; ctx.strokeStyle = s==='sand' ? 'rgba(110,75,25,.5)' : 'rgba(27,35,51,.35)';
+    ctx.strokeText(spaced, w/2, base); ctx.setLineDash([]);
+    strokes.concat(cur?[cur]:[]).forEach(drawStroke);
+  }
+  function drawStroke(st){
+    if(st.pts.length<1) return;
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    const pts = st.pts;
+    const path = ()=>{ ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]); if(pts.length===1) ctx.lineTo(pts[0][0]+.1,pts[0][1]); };
+    if(st.sand){
+      ctx.lineWidth = 22; ctx.strokeStyle = 'rgba(150,110,50,.55)'; path(); ctx.stroke();
+      ctx.lineWidth = 12; ctx.strokeStyle = 'rgba(110,75,30,.55)'; path(); ctx.stroke();
+    } else { ctx.lineWidth = st.board?9:7; ctx.strokeStyle = st.color; path(); ctx.stroke(); }
+  }
+  const pos = e=>{ const r = cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
+  cv.addEventListener('pointerdown', e=>{ e.preventDefault(); try{ cv.setPointerCapture(e.pointerId); }catch(_){} cur = {pts:[pos(e)], color:state.write.color, sand:state.write.surface==='sand', board:state.write.surface==='board'}; draw(); });
+  cv.addEventListener('pointermove', e=>{ if(!cur) return; cur.pts.push(pos(e)); draw(); });
+  const end = ()=>{ if(cur){ strokes.push(cur); cur=null; draw(); } };
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+  const ro = new ResizeObserver(()=>size()); ro.observe(cv.parentElement);
+  cleanup.push(()=>ro.disconnect());
+  pad = {clear(){ strokes.length=0; cur=null; draw(); }, has(){ return strokes.length>0; }};
+  size();
+  if(document.fonts && document.fonts.load){ document.fonts.load('700 80px Andika').then(()=>draw()).catch(()=>{}); }
+  // press-and-hold peek for the back-writing game
+  const pk = $('.peek');
+  if(pk){
+    const orig = pk.textContent;
+    const show = e=>{ e.preventDefault(); pk.textContent = pk.dataset.peek; pk.classList.add('read'); pk.style.fontSize='40px'; };
+    const hide = ()=>{ pk.textContent = orig; pk.classList.remove('read'); pk.style.fontSize=''; };
+    pk.addEventListener('pointerdown', show); ['pointerup','pointerleave','pointercancel'].forEach(ev=>pk.addEventListener(ev, hide));
+    pk.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter') show(e); }); pk.addEventListener('keyup', hide);
+  }
+}
+
+/* ---------- 4. SPELL (dictation) ---------- */
+function spellView(L){
+  const w = L.words[state.spell.wi % L.words.length];
+  const S = state.spell;
+  if(S.forWord !== w.text+L.id){
+    S.forWord = w.text+L.id; S.boxes = w.toks.map(()=>null); S.checked = false; S.shown = false;
+    const bank = w.toks.map(t=>t.g.toLowerCase());
+    const extra = new Set();
+    w.toks.forEach(t=>{ if(t.star){ const sp = spellingFor(t,w,L); const card = sp ? CARDS[sp.cid] : null;
+      if(card) card.sp.map(cleanSp).filter(x=>!x.includes('_')).forEach(x=>{ x=x.replace(/^_/,''); if(!bank.includes(x)) extra.add(x); }); } });
+    let ex = shuffle([...extra]).slice(0,3);
+    const fillers = shuffle(['m','s','t','p','n','d','b','l','r','h','g','f'].filter(x=>!bank.includes(x)));
+    while(ex.length<3) ex.push(fillers.shift());
+    S.tiles = shuffle(bank.concat(ex)).map((g,i)=>({g, id:i, used:false}));
+  }
+  const chips = w.toks.map((t,i)=>{
+    const sp = spellingFor(t,w,L);
+    const num = sp && sp.total>1 ? `<span class="num">#${sp.num}</span>` : '';
+    const label = t.key==='0' ? 'silent e' : showOf(t.key);
+    return `<div class="scol"><span class="schip" data-i="${i}">${esc(label)}${num}</span>
+      ${S.mode==='tiles'?`<div class="box${S.boxes[i]?' filled':''}${S.checked?(S.boxes[i]&&S.boxes[i].g===t.g.toLowerCase()?' right':' wrong'):''}" data-box="${i}" role="button" tabindex="0" aria-label="Box ${i+1}${S.boxes[i]?': '+S.boxes[i].g:': empty'}">${S.boxes[i]?esc(S.boxes[i].g):(t.key==='0'?'<small>silent</small>':'')}</div>`:''}
+    </div>`;
+  }).join('');
+  const numbered = w.toks.map(t=>spellingFor(t,w,L)).filter(x=>x && x.total>1);
+  return `
+  <section class="panel dict">
+    <div class="row" style="justify-content:space-between;width:100%">
+      <p class="eyebrow">Word ${S.wi % L.words.length + 1} of ${L.words.length}</p>
+      <div class="seg" role="group" aria-label="How your child answers">
+        <button aria-pressed="${S.mode==='tiles'}" data-act="smode" data-v="tiles">Build with tiles</button>
+        <button aria-pressed="${S.mode==='paper'}" data-act="smode" data-v="paper">Write on paper</button>
+      </div>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="btn sky" data-act="dictate">▶ Say the word and its sounds</button>
+      <button class="btn ghost" data-act="dictword">Word only</button>
+    </div>
+    <div class="sounds" id="sounds">${chips}</div>
+    ${numbered.length?`<p class="muted" style="margin:0">Red numbers match the spelling numbers on the ${numbered.map(n=>esc(CARDS[n.cid].key)).join(', ')} card. Keep the card in view.</p>`:''}
+    ${S.mode==='tiles' ? `
+      <div class="bank" id="bank">${S.tiles.map(t=>`<button class="ptile${t.used?' used':''}" data-tile="${t.id}" aria-label="Letter tile ${esc(t.g)}">${esc(t.g)}</button>`).join('')}</div>
+      <div class="row" style="justify-content:center">
+        <button class="btn ghost" data-act="sclear">Start over</button>
+        <button class="btn mint" data-act="scheck">Check my word</button>
+        <button class="btn primary" data-act="snext">Next word ›</button>
+      </div>` : `
+      <p class="read" style="font-size:18px;margin:0">Write the word on paper or a whiteboard. Then check it.</p>
+      <div class="row" style="justify-content:center">
+        <button class="btn mint" data-act="sshow">Show the spelling</button>
+        <button class="btn primary" data-act="snext">Next word ›</button>
+      </div>
+      ${S.shown?`<div class="answer">${wordHTML(w)}</div>`:''}`}
+  </section>`;
+}
+function dictate(L, wordOnly){
+  const w = L.words[state.spell.wi % L.words.length];
+  const chips = $$('#sounds .schip');
+  const parts = [{text:`Please write the word ${w.text}.`, gap:350, i:-2}, {text:w.text, rate:.8, gap:500, i:-2}];
+  if(!wordOnly){
+    w.toks.forEach((t,i)=>{
+      if(t.key==='0'){ parts.push({text:'silent e', rate:.9, gap:300, i}); return; }
+      const sp = spellingFor(t,w,L);
+      const num = sp && sp.total>1;
+      parts.push({text: sayOf(t.key), rate:.75, gap: num ? 150 : 450, i});
+      if(num) parts.push({text:`spelling number ${sp.num}`, rate:.9, gap:450, i});
+    });
+    parts.push({text:w.text, rate:.8, gap:100, i:-2});
+  }
+  Speech.seq(parts, i=>chips.forEach((c,j)=>c.classList.toggle('on', j===i)));
+}
+function placeTile(id, boxIdx){
+  const S = state.spell; const tile = S.tiles.find(t=>t.id===id); if(!tile || tile.used) return;
+  if(boxIdx==null) boxIdx = S.boxes.findIndex(b=>!b);
+  if(boxIdx<0) return;
+  if(S.boxes[boxIdx]){ const old = S.tiles.find(t=>t.id===S.boxes[boxIdx].id); if(old) old.used=false; }
+  S.boxes[boxIdx] = {g:tile.g, id:tile.id}; tile.used = true; S.checked=false;
+  const L = LESSONS[state.li]; const w = L.words[S.wi % L.words.length]; const tok = w.toks[boxIdx];
+  if(tok && tok.key!=='0'){ Speech.stop(); Speech.say(sayOf(tok.key), .8); }
+  render();
+}
+function bindDrag(){
+  const bank = $('#bank'); if(!bank) return;
+  let drag = null;
+  bank.addEventListener('pointerdown', e=>{
+    const t = e.target.closest('.ptile'); if(!t) return;
+    drag = {id:+t.dataset.tile, x:e.clientX, y:e.clientY, el:t, ghost:null, moved:false};
+    try{ t.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  bank.addEventListener('pointermove', e=>{
+    if(!drag) return;
+    if(!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y) > 8){
+      drag.moved = true; drag.ghost = drag.el.cloneNode(true); drag.ghost.classList.add('dragghost'); document.body.appendChild(drag.ghost); drag.el.style.opacity='.3';
+    }
+    if(drag.moved){
+      drag.ghost.style.left = e.clientX+'px'; drag.ghost.style.top = e.clientY+'px';
+      $$('.box').forEach(b=>b.classList.remove('hot'));
+      const under = document.elementFromPoint(e.clientX, e.clientY); const box = under && under.closest('.box'); if(box) box.classList.add('hot');
+    }
+  });
+  const end = e=>{
+    if(!drag) return; const d = drag; drag = null;
+    if(d.ghost){ d.ghost.remove(); d.el.style.opacity=''; }
+    if(!d.moved){ placeTile(d.id, null); return; }
+    const under = document.elementFromPoint(e.clientX, e.clientY); const box = under && under.closest('.box');
+    $$('.box').forEach(b=>b.classList.remove('hot'));
+    if(box) placeTile(d.id, +box.dataset.box);
+  };
+  bank.addEventListener('pointerup', end); bank.addEventListener('pointercancel', e=>{ if(drag&&drag.ghost){ drag.ghost.remove(); drag.el.style.opacity=''; } drag=null; });
+}
+
+/* ---------- 5. HUNT ---------- */
+function huntWords(L){
+  const out = [];
+  L.hunt.forEach((s,si)=>s.split(' ').forEach((raw,wi)=>{
+    const m = raw.match(/^([^A-Za-z']*)([A-Za-z']+)(\*?)(.*)$/);
+    if(!m) out.push({si, wi, pre:raw, word:'', target:false, post:''});
+    else out.push({si, wi, pre:m[1], word:m[2], target:!!m[3], post:m[4]});
+  }));
+  return out;
+}
+function patHL(word, L){
+  const found = L.words.find(w=>w.text.toLowerCase()===word.toLowerCase());
+  if(found) return found.toks.map(t=>t.star?`<span class="t">${esc(t.g)}</span>`:esc(t.g)).join('');
+  for(const p of L.p){
+    if(p.includes('_')){
+      const re = new RegExp(`(${p[0]})([^aeiouy]{1,2})(${p[2]})`,'i'); const m = word.match(re);
+      if(m){ const i = m.index; return esc(word.slice(0,i))+`<span class="t">${esc(m[1])}</span>${esc(m[2])}<span class="t">${esc(m[3])}</span>`+esc(word.slice(i+m[0].length)); }
+    } else {
+      const i = word.toLowerCase().lastIndexOf(p);
+      if(i>=0) return esc(word.slice(0,i))+`<span class="t">${esc(word.slice(i,i+p.length))}</span>`+esc(word.slice(i+p.length));
+    }
+  }
+  return esc(word);
+}
+function huntView(L){
+  const ws = huntWords(L);
+  const key = L.id+':hunt'; const found = new Set(prog.found[key]||[]);
+  const total = ws.filter(w=>w.target).length;
+  const sents = L.hunt.map((s,si)=>`<p class="sent read">${ws.filter(w=>w.si===si).map(w=>{
+    const id = `${w.si}-${w.wi}`; const hit = found.has(id);
+    return w.word ? `<span>${esc(w.pre)}<button class="hw${hit?' hit':''}" data-act="hw" data-id="${id}" data-t="${w.target?1:0}" data-w="${esc(w.word)}">${hit?patHL(w.word,L):esc(w.word)}</button>${esc(w.post)}</span>` : `<span>${esc(w.pre)}</span>`;
+  }).join(' ')}</p>`).join('');
+  const t = prog.tally[L.id] || {n:0, words:[]};
+  const groups = []; for(let i=0;i<t.n;i+=5) groups.push(Math.min(5, t.n-i));
+  return `
+  <section class="panel">
+    <div class="row" style="justify-content:space-between">
+      <p class="eyebrow">Tap every word that has ${esc(L.p.join(', '))}</p>
+      <span class="pill" id="huntcount">${found.size} of ${total} found</span>
+    </div>
+    <div class="sentences" style="margin-top:12px">${sents}</div>
+    <div class="row" style="margin-top:14px"><button class="btn small ghost" data-act="hreset">Hunt again</button><button class="btn small sky" data-act="hread">▶ Read the sentences to me</button></div>
+  </section>
+  <section class="panel">
+    <p class="eyebrow">Book hunt tally</p>
+    <p style="margin:4px 0 12px">Open your Word Hunt worksheet or a book from your shelf. Every time you spot <b class="read">${esc(L.p.join(', '))}</b>, tap the big button.</p>
+    <div class="tally">
+      <button class="btn sun" data-act="tally" data-d="1" style="min-height:64px;font-size:22px">+ I found one!</button>
+      <span class="count" aria-live="polite">${t.n}</span>
+      <div class="marks" aria-hidden="true">${groups.map(g=>`<span class="${g===5?'five':''}">${'<i></i>'.repeat(Math.min(g,4))}</span>`).join('')}</div>
+      <button class="btn small ghost" data-act="tally" data-d="-1">Undo</button>
+    </div>
+    <form class="row" data-form="hwords" style="margin-top:14px">
+      <label class="sr" for="hword">Word you found</label>
+      <input type="text" id="hword" placeholder="Type a word you found" autocomplete="off">
+      <button class="btn small mint" type="submit">Add word</button>
+    </form>
+    ${t.words.length?`<div class="spells" style="margin-top:10px">${t.words.map((w,i)=>`<button class="btn small ghost read" data-act="sayw" data-w="${esc(w)}" style="font-size:20px">${patHL(w,L)}</button>`).join('')}</div>`:''}
+  </section>`;
+}
+
+/* ---------- SOUND WALL ---------- */
+function unlockedCards(){
+  const r = reached(); const set = new Set();
+  LESSONS.slice(0, r+1).forEach(L=>L.c.forEach(c=>set.add(c)));
+  return set;
+}
+function wallView(){
+  return `
+  <div class="lhead"><div><p class="eyebrow">Like a presentation board</p><h1 style="font-family:var(--display);font-size:36px">Sound Wall</h1></div></div>
+  <p class="muted" style="max-width:70ch">Every card is open to explore any time. Tap a card to hear its chant.</p>
+  <div class="wall">${CARD_ORDER.map(cid=>`<figure class="wcard" style="margin:0"><button class="wcard" data-act="wallcard" data-c="${cid}" aria-label="${esc(CARDS[cid].key)} card" style="width:100%">${cardHTML(cid)}</button><figcaption>${esc(CARDS[cid].key)}</figcaption></figure>`).join('')}</div>`;
+}
+function openCardModal(cid){
+  const c = CARDS[cid]; const parts = chantParts(cid, null);
+  const d = document.createElement('div'); d.className='modal'; d.setAttribute('role','dialog'); d.setAttribute('aria-modal','true');
+  d.innerHTML = `<div class="inner">${cardHTML(cid)}<div class="chant" style="justify-content:center">${parts.map((p,i)=>`<span class="chip${p.snd?' snd':''}" data-i="${i}" style="font-size:22px">${esc(p.show)}</span>`).join('')}</div>
+    <p class="read" style="margin:0;font-size:17px;text-align:center"><b>Move:</b> ${esc(c.move)}</p>
+    <div class="row" style="justify-content:center"><button class="btn sky" data-m="chant">▶ Hear the chant</button><button class="btn ghost" data-m="close">Close</button></div></div>`;
+  document.body.appendChild(d);
+  const chips = $$('.chip', d);
+  const play = ()=>runChant(parts, i=>chips.forEach((el,j)=>el.classList.toggle('on', j===i)));
+  const close = ()=>{ Speech.stop(); d.remove(); document.removeEventListener('keydown', esc_); };
+  const esc_ = e=>{ if(e.key==='Escape') close(); };
+  d.addEventListener('click', e=>{ if(e.target===d || e.target.dataset.m==='close') close(); if(e.target.dataset.m==='chant') play(); });
+  document.addEventListener('keydown', esc_);
+  $('[data-m="chant"]', d).focus();
+  play();
+}
+
+/* ---------- CARD REVIEW ---------- */
+function newDeck(){ const un = state.reviewAll ? CARD_ORDER.slice() : [...unlockedCards()]; return {deck:shuffle(un), i:0, got:[], again:[], revealed:false}; }
+function reviewView(){
+  if(!state.review) state.review = newDeck();
+  const R = state.review;
+  if(R.i >= R.deck.length){
+    return `<div class="lhead"><div><p class="eyebrow">Picture → sound → spelling</p><h1 style="font-family:var(--display);font-size:36px">${KID ? 'Card Game' : 'Card Review'}</h1></div></div>
+    <section class="panel" style="margin-top:16px;text-align:center;display:grid;gap:14px;justify-items:center">
+      <p class="read" style="font-size:28px;margin:0">Round done! ${R.got.length} known, ${R.again.length} to practice.</p>
+      <div class="row" style="justify-content:center">
+        ${R.again.length?`<button class="btn sun" data-act="rev-again">Practice the ${R.again.length} again</button>`:''}
+        <button class="btn primary" data-act="rev-new">New round</button>
+      </div></section>`;
+  }
+  const cid = R.deck[R.i]; const c = CARDS[cid];
+  return `
+  <div class="lhead"><div><p class="eyebrow">Picture → sound → spelling</p><h1 style="font-family:var(--display);font-size:36px">${KID ? 'Card Game' : 'Card Review'}</h1></div>
+    <span class="row" style="margin-left:auto"><label class="row" style="gap:8px;font-weight:600"><input type="checkbox" data-act="revall" ${state.reviewAll?'checked':''}> Use every card</label><span class="pill">Card ${R.i+1} of ${R.deck.length}</span></span></div>
+  <div class="review">
+    <div class="cardcol">${cardHTML(cid, {cover:!R.revealed})}</div>
+    <section class="panel" style="display:grid;gap:14px">
+      <p class="read" style="font-size:24px;margin:0">${R.revealed?`<b>${esc(cap(c.key))}</b> says <b>${esc(showOf(c.snd))}</b>. Spelled: <b>${c.sp.map(cleanSp).join(', ')}</b>.`:'What sound does this picture make? What spelling pattern(s) go with it?'}</p>
+      <p class="muted" style="margin:0">Say your answer out loud first. Then drag the flap down (or tap Peek) to check.</p>
+      <div class="row">
+        ${R.revealed?`<button class="btn sky" data-act="rev-chant" data-c="${cid}">▶ Hear the chant</button>`:`<button class="btn sky" data-act="rev-peek">Peek</button>`}
+      </div>
+      <div class="piles">
+        <button class="pile" data-act="rev-sort" data-v="got" ${R.revealed?'':'disabled'} style="${R.revealed?'':'opacity:.5'}"><span class="eyebrow">I knew it</span><br><b>${R.got.length}</b></button>
+        <button class="pile" data-act="rev-sort" data-v="again" ${R.revealed?'':'disabled'} style="${R.revealed?'':'opacity:.5'}"><span class="eyebrow">Practice again</span><br><b>${R.again.length}</b></button>
+      </div>
+    </section>
+  </div>`;
+}
+function revealReview(){ if(!state.review) return; state.review.revealed = true; const cid = state.review.deck[state.review.i]; render(); chantSimple(cid); }
+function chantSimple(cid){ runChant(chantParts(cid, null)); }
+function bindCover(){
+  const cov = $('[data-cover]'); if(!cov) return;
+  let y0=null;
+  cov.addEventListener('pointerdown', e=>{ y0=e.clientY; try{ cov.setPointerCapture(e.pointerId); }catch(_){} cov.style.transition='none'; });
+  cov.addEventListener('pointermove', e=>{ if(y0==null) return; const dy = Math.max(0, e.clientY-y0); cov.style.transform = `translateY(${dy}px)`; });
+  const up = e=>{ if(y0==null) return; const dy = e.clientY-y0; y0=null; cov.style.transition='';
+    if(dy > 30 || Math.abs(dy)<6){ cov.classList.add('gone'); cov.style.transform=''; setTimeout(revealReview, 300); } else cov.style.transform=''; };
+  cov.addEventListener('pointerup', up); cov.addEventListener('pointercancel', ()=>{ y0=null; cov.style.transform=''; });
+}
+
+/* ---------- SETTINGS ---------- */
+function settingsView(){
+  const vs = Speech.voices;
+  return `
+  <div class="lhead"><div><p class="eyebrow">For the grown-up</p><h1 style="font-family:var(--display);font-size:36px">Voice &amp; Settings</h1></div></div>
+  <div class="set">
+    <section class="panel">
+      <label for="voice">Reading voice</label>
+      ${Speech.ok ? (vs.length ? `<select id="voice" data-act="voice">${vs.map(v=>`<option value="${esc(v.name)}" ${Speech.voice&&v.name===Speech.voice.name?'selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>` : `<p class="muted">Loading the voices on this device…</p>`) : `<p class="muted">This browser does not offer a speaking voice.</p>`}
+      <label class="row" style="gap:10px;margin-top:14px;font-weight:600"><input type="checkbox" id="clips" data-act="clips" ${prefs.clips!==false?'checked':''}> Use my recorded sounds and chants (all vowels; b through t; chants for apple through umbrella, sh, th, ch, oo, aw, ow)</label>
+      <label for="rate" style="margin-top:14px">Speaking speed</label>
+      <input type="range" id="rate" min="0.55" max="1.15" step="0.05" value="${prefs.rate}" data-act="rate">
+      <div class="row" style="margin-top:12px">
+        <button class="btn small sky" data-act="test" data-v="word">Test a word</button>
+        <button class="btn small sky" data-act="test" data-v="sounds">Test some sounds</button>
+      </div>
+    </section>
+    <section class="panel">
+      <p style="margin-top:0"><b>About the computer voice.</b> Whole words sound right. Single sounds are approximations: the voice may add an "uh" to sounds like /b/ or blur short vowels. Your own recordings now play for all short and long vowels and for b, c/k, d, f, g, h, j, l, m, n, p, qu, r, s, t, sh, th, ch, oo, aw and ow. Your recorded chants play for the apple through umbrella cards and sh, th, ch, oo, aw and ow, so those are exact. For the other consonants, model the pure sound yourself, as in your lesson plan. Voices differ by device; try a few.</p>
+      <p style="margin-bottom:0"><b>Progress</b> is saved on this device only.</p>
+    </section>
+    <section class="panel">
+      <p style="margin-top:0"><b>Start fresh</b> — clears finished steps, tallies, and found words on this device.</p>
+      ${state.confirmReset ? `<div class="row"><span>Clear all progress?</span><button class="btn small primary" data-act="reset-yes">Yes, clear it</button><button class="btn small ghost" data-act="reset-no">Keep it</button></div>` : `<button class="btn small ghost" data-act="reset">Reset progress</button>`}
+    </section>
+  </div>`;
+}
+
+/* ============================================================
+   8. EVENTS
+   ============================================================ */
+function stars(n){ $$('#stars i').forEach((el,i)=>el.classList.toggle('on', i<n)); }
+async function playChant(times){
+  const L = LESSONS[state.li]; const cid = L.c[Math.min(state.card, L.c.length-1)];
+  const parts = chantParts(cid, L); const chips = $$('#chant .chip');
+  for(let r=0;r<times;r++){
+    const ok = await runChant(parts, i=>chips.forEach((el,j)=>el.classList.toggle('on', j===i)));
+    if(!ok) return;
+    if(times>1){ state.chants = Math.min(3,(state.chants||0)+1); stars(state.chants); if(state.chants>=3) markStep(L.id,'meet'); await sleep(500); }
+  }
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const a = b.dataset.act; const L = LESSONS[state.li];
+  switch(a){
+    case 'home': go('home'); break;
+    case 'wall': go('wall'); break;
+    case 'review': go('review'); break;
+    case 'settings': go('settings', {confirmReset:false}); break;
+    case 'open': { const i=+b.dataset.i; prog.last = Math.max(prog.last||0, i); saveProg(); go('lesson', {li:i, step:0, card:0, wi:0, chants:0, write:{...state.write, pat:0, count:0}, spell:{wi:0, mode:state.spell.mode}}); break; }
+    case 'lesson-step': { const i = Math.max(0, Math.min(LESSONS.length-1, state.li + +b.dataset.d)); prog.last = Math.max(prog.last||0, i); saveProg(); go('lesson', {li:i, step:0, card:0, wi:0, chants:0, write:{...state.write, pat:0, count:0}, spell:{wi:0, mode:state.spell.mode}}); break; }
+    case 'step': { const s=+b.dataset.s; if(s>=0 && s<STEPS.length) go('lesson', {step:s}); break; }
+    case 'finish-step': {
+      markStep(L.id, STEPS[state.step].k);
+      if(state.step < STEPS.length-1) go('lesson', {step:state.step+1});
+      else { celebrate(); toast(KID ? `Stop ${L.idx+1} done! You earned your stars ⭐` : `Lesson ${L.idx+1} finished!`); go('home'); }
+      break; }
+    case 'timer': e.preventDefault(); toggleTimer(); break;
+    case 'card': state.card=+b.dataset.c; state.chants=0; render(); break;
+    case 'chant': playChant(1); break;
+    case 'chant3': state.chants=0; stars(0); playChant(3); break;
+    case 'sound': Speech.stop(); Speech.say(sayOf(b.dataset.k), .75); break;
+    case 'star': state.chants=Math.min(3,(state.chants||0)+1); stars(state.chants); if(state.chants>=3){ markStep(L.id,'meet'); toast('Three chants! Great job.'); } break;
+    case 'pickword': state.wi=+b.dataset.w; render(); soundOut(L, L.words[state.wi]); break;
+    case 'tok': { const w=L.words[state.wi]; const t=w.toks[+b.dataset.t]; Speech.stop(); if(t.key!=='0') Speech.say(sayOf(t.key), .75); if(t.star){ b.classList.add('found'); } else { b.animate && b.animate([{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'none'}],{duration:250}); } break; }
+    case 'soundout': soundOut(L, L.words[state.wi]); break;
+    case 'readword': Speech.stop(); Speech.say(L.words[state.wi].text, .85); markWordRead(L); break;
+    case 'nextword': state.wi=(state.wi+1)%L.words.length; render(); break;
+    case 'hide': state.hide=b.checked; render(); break;
+    case 'wpat': state.write.pat=+b.dataset.p; render(); break;
+    case 'surface': state.write.surface=b.dataset.v; render(); break;
+    case 'color': state.write.color=b.dataset.v; $$('.swatch').forEach(s=>s.setAttribute('aria-pressed', s===b)); break;
+    case 'wclear': pad && pad.clear(); break;
+    case 'wsay': runChant(chantParts(L.c[0],L)); break;
+    case 'traced': state.write.count=Math.min(3,state.write.count+1); pad && pad.clear(); $$('.stars i').forEach((el,i)=>el.classList.toggle('on', i<state.write.count)); if(state.write.count>=3){ markStep(L.id,'write'); toast('Traced 3 times!'); } break;
+    case 'reveal-back': { const el=$('#backans'); el.textContent=b.dataset.v; Speech.stop(); Speech.say(spellSay(b.dataset.v)); break; }
+    case 'smode': state.spell.mode=b.dataset.v; render(); break;
+    case 'dictate': dictate(L,false); break;
+    case 'dictword': dictate(L,true); break;
+    case 'sclear': state.spell.forWord=null; render(); break;
+    case 'scheck': {
+      const S=state.spell; const w=L.words[S.wi%L.words.length]; S.checked=true;
+      const right = w.toks.every((t,i)=>S.boxes[i] && S.boxes[i].g===t.g.toLowerCase());
+      render();
+      if(right){ Speech.stop(); Speech.say(`Yes! ${w.text}.`); celebrate(); S.right=(S.right||0)+1; if(S.right>=5) markStep(L.id,'spell'); }
+      else { Speech.stop(); Speech.say('Almost. Fix the red boxes.'); }
+      break; }
+    case 'sshow': state.spell.shown=true; render(); Speech.stop(); Speech.say(L.words[state.spell.wi%L.words.length].text); state.spell.right=(state.spell.right||0)+1; if(state.spell.right>=5) markStep(L.id,'spell'); break;
+    case 'snext': state.spell.wi++; state.spell.forWord=null; render(); dictate(L,false); break;
+    case 'hw': {
+      const id=b.dataset.id; const key=L.id+':hunt'; const s=new Set(prog.found[key]||[]);
+      Speech.stop(); Speech.say(b.dataset.w, .85);
+      if(b.dataset.t==='1'){ s.add(id); prog.found[key]=[...s]; saveProg(); b.classList.add('hit'); b.innerHTML=patHL(b.dataset.w,L);
+        const total=huntWords(L).filter(w=>w.target).length; $('#huntcount').textContent=`${s.size} of ${total} found`;
+        if(s.size>=total){ markStep(L.id,'hunt'); celebrate(); toast('You found them all!'); } }
+      else { b.classList.remove('miss'); void b.offsetWidth; b.classList.add('miss'); }
+      break; }
+    case 'hreset': prog.found[L.id+':hunt']=[]; saveProg(); render(); break;
+    case 'hread': { const parts=L.hunt.map(s=>({text:s.replace(/\*/g,''), rate:.85, gap:500})); Speech.seq(parts); break; }
+    case 'tally': { const t=prog.tally[L.id]||{n:0,words:[]}; t.n=Math.max(0,t.n+ +b.dataset.d); prog.tally[L.id]=t; saveProg(); render(); break; }
+    case 'sayw': Speech.stop(); Speech.say(b.dataset.w,.85); break;
+    case 'wallcard': openCardModal(b.dataset.c); break;
+    case 'rev-peek': { const cov=$('[data-cover]'); if(cov){ cov.classList.add('gone'); setTimeout(revealReview,300); } else revealReview(); break; }
+    case 'rev-chant': chantSimple(b.dataset.c); break;
+    case 'rev-sort': { const R=state.review; const cid=R.deck[R.i]; (b.dataset.v==='got'?R.got:R.again).push(cid); R.i++; R.revealed=false; Speech.stop(); render(); break; }
+    case 'rev-again': { const ag=state.review.again; state.review={deck:shuffle(ag), i:0, got:[], again:[], revealed:false}; render(); break; }
+    case 'rev-new': state.review=newDeck(); render(); break;
+    case 'revall': state.reviewAll=b.checked; state.review=newDeck(); render(); break;
+    case 'test': Speech.stop(); if(b.dataset.v==='word') Speech.say('Apple. Bread. Snake. Light.', .9); else Speech.seq(['a','e','i','o','u','A','E','I','O','U','b','k','d','f','g','h','j','l','m','n','p','kw','r','s','t','sh','th','ch','oo','aw','ow'].map(k=>({text:sayOf(k), rate:.75, gap:350}))); break;
+    case 'clips': prefs.clips = b.checked; savePrefs(); break;
+    case 'reset': state.confirmReset=true; render(); break;
+    case 'reset-no': state.confirmReset=false; render(); break;
+    case 'reset-yes': prog.done={}; prog.last=0; prog.tally={}; prog.found={}; saveProg(); state.confirmReset=false; state.review=null; toast('Progress cleared.'); render(); break;
+  }
+});
+document.addEventListener('change', e=>{
+  const a = e.target.dataset.act;
+  if(a==='voice'){ prefs.voice=e.target.value; savePrefs(); Speech.voice = Speech.voices.find(v=>v.name===prefs.voice) || Speech.voice; Speech.stop(); Speech.say('Hello! Let us read.'); }
+  if(a==='rate'){ prefs.rate=+e.target.value; savePrefs(); Speech.stop(); Speech.say('Apple, apple.'); }
+});
+document.addEventListener('submit', e=>{
+  if(e.target.dataset.form!=='hwords') return; e.preventDefault();
+  const inp = $('#hword'); const v = (inp.value||'').trim().replace(/[^A-Za-z' -]/g,'').slice(0,30); if(!v) return;
+  const L = LESSONS[state.li]; const t = prog.tally[L.id]||{n:0,words:[]}; t.words.push(v); t.n = Math.max(t.n, t.words.length); prog.tally[L.id]=t; saveProg(); render();
+  Speech.stop(); Speech.say(v, .85); setTimeout(()=>{ const i=$('#hword'); i && i.focus(); }, 30);
+});
+document.addEventListener('keydown', e=>{
+  const box = e.target.closest && e.target.closest('.box');
+  if(box && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); const S=state.spell; const i=+box.dataset.box; if(S.boxes[i]){ const t=S.tiles.find(x=>x.id===S.boxes[i].id); if(t) t.used=false; S.boxes[i]=null; S.checked=false; render(); } }
+});
+/* tapping a filled box sends its tile back to the bank */
+document.addEventListener('click', e=>{
+  const box = e.target.closest('.box'); if(!box || state.view!=='lesson') return;
+  const S=state.spell; const i=+box.dataset.box; if(S.boxes[i]){ const t=S.tiles.find(x=>x.id===S.boxes[i].id); if(t) t.used=false; S.boxes[i]=null; S.checked=false; render(); }
+});
+
+/* ---------- step timer (keeps running while you work in the step) ---------- */
+let timer = {key:null, left:0, h:null};
+function bindTimer(){
+  const key = state.li+':'+state.step;
+  if(timer.key!==key){ clearInterval(timer.h); timer = {key, left:STEPS[state.step].min*60, h:null}; }
+  paintTimer();
+}
+function paintTimer(){
+  const wrap = $('[data-timer]'); const min = STEPS[state.step].min; if(!wrap || !min || state.view!=='lesson') return;
+  const span = wrap.querySelector('span'); const btn = wrap.querySelector('button');
+  span.textContent = `${Math.floor(timer.left/60)}:${String(timer.left%60).padStart(2,'0')}`;
+  if(btn) btn.textContent = timer.h ? 'Pause' : timer.left===0 ? 'Time is up' : timer.left<min*60 ? 'Resume' : 'Start timer';
+}
+function toggleTimer(){
+  if(timer.h){ clearInterval(timer.h); timer.h=null; paintTimer(); return; }
+  if(timer.left<=0) return;
+  timer.h = setInterval(()=>{
+    timer.left = Math.max(0, timer.left-1); paintTimer();
+    if(timer.left===0){ clearInterval(timer.h); timer.h=null; paintTimer(); toast('Time for the next step.'); }
+  }, 1000);
+  paintTimer();
+}
+
+/* ---------- celebration ---------- */
+function celebrate(){
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = document.createElement('canvas'); c.className='confetti'; document.body.appendChild(c);
+  const dpr = window.devicePixelRatio||1; c.width=innerWidth*dpr; c.height=innerHeight*dpr; const x=c.getContext('2d'); x.scale(dpr,dpr);
+  const cols=['#df2a2a','#f2c230','#1d6aa8','#2c8a3e','#e85d3d'];
+  const ps=Array.from({length:90},()=>({x:innerWidth/2+(Math.random()-.5)*120, y:innerHeight*.35, vx:(Math.random()-.5)*9, vy:-Math.random()*9-3, r:Math.random()*6+4, c:cols[Math.floor(Math.random()*cols.length)], a:Math.random()*6}));
+  let f=0; (function tick(){ x.clearRect(0,0,innerWidth,innerHeight); ps.forEach(p=>{ p.vy+=.28; p.x+=p.vx; p.y+=p.vy; p.a+=.2; x.save(); x.translate(p.x,p.y); x.rotate(p.a); x.fillStyle=p.c; x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6); x.restore(); }); if(++f<90) requestAnimationFrame(tick); else c.remove(); })();
+}
+
+/* ---------- boot ---------- */
+if(KID){
+  document.body.classList.add('kid');
+  const b = document.querySelector('.brand b'); if(b) b.textContent = 'Sound Quest';
+  const brand = document.querySelector('.brand'); if(brand) brand.setAttribute('aria-label','Sound Quest home');
+  const nav = document.querySelector('.nav');
+  if(nav) nav.innerHTML = '<button data-act="home" data-view="home">My Path</button><button data-act="wall" data-view="wall">Sound Wall</button><button data-act="review" data-view="review">Card Game</button>';
+}
+if(!KID && OTHER_APP){
+  const nav = document.querySelector('.nav');
+  if(nav) nav.insertAdjacentHTML('beforeend', `<a href="${OTHER_APP}" style="display:inline-flex;align-items:center;border:2px solid var(--line);background:var(--desk);border-radius:999px;padding:8px 14px;font-weight:600;font-size:15px;color:var(--ink);text-decoration:none">Student version ›</a>`);
+}
+Speech.init();
+render();
+</script>
+</body>
+</html>
